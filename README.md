@@ -4,7 +4,25 @@
 
 [![Live Demo](https://img.shields.io/badge/🚀_Demo-solskill.ai-9945FF?style=for-the-badge)](https://solskill.ai)
 [![Skill Spec](https://img.shields.io/badge/📋_Skill_Spec-skill.md-14F195?style=for-the-badge)](https://solskill.ai/skill.md)
+[![API Docs](https://img.shields.io/badge/📚_API_Docs-Interactive-blue?style=for-the-badge)](https://solskill.ai/docs)
 [![Built on Solana](https://img.shields.io/badge/Built_on-Solana-black?style=for-the-badge&logo=solana)](https://solana.com)
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Live-14F195?style=flat-square" />
+  <img src="https://img.shields.io/badge/Agents-47+-9945FF?style=flat-square" />
+  <img src="https://img.shields.io/badge/Endpoints-15+-00FFA3?style=flat-square" />
+  <img src="https://img.shields.io/badge/Hackathon-Solana_AI_2026-black?style=flat-square" />
+</p>
+
+---
+
+## 🎬 Try It Now!
+
+**No signup needed** — Test real Jupiter quotes directly on our site:
+
+👉 **[Live Swap Demo](https://solskill.ai)** — Get real-time swap quotes  
+👉 **[Interactive API Docs](https://solskill.ai/docs)** — Run API calls in your browser  
+👉 **[Skill File](https://solskill.ai/skill.md)** — Give this to your AI agent
 
 ---
 
