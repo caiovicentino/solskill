@@ -335,27 +335,31 @@ function HoldingsTab({ portfolio }: { portfolio: PortfolioData | null }) {
         <WalletIcon size={24} />
         Token Holdings
       </h3>
-      <div className="space-y-3">
-        {portfolio.holdings.map((holding, i) => (
-          <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-xl">
-                {holding.tokenSymbol === 'SOL' ? '◎' : '$'}
+      {portfolio.holdings.length === 0 ? (
+        <p className="text-gray-400 text-center py-8">No tokens found in this wallet</p>
+      ) : (
+        <div className="space-y-3">
+          {portfolio.holdings.map((holding, i) => (
+            <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-xl">
+                  {holding.tokenSymbol === 'SOL' ? '◎' : '$'}
+                </div>
+                <div>
+                  <p className="font-bold">{holding.tokenSymbol}</p>
+                  <p className="text-gray-400 text-sm">{holding.balance} tokens</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold">{holding.tokenSymbol}</p>
-                <p className="text-gray-400 text-sm">{holding.balance} tokens</p>
+              <div className="text-right">
+                <p className="font-bold">${holding.valueUsd.toLocaleString()}</p>
+                <p className={`text-sm ${holding.change24h >= 0 ? 'text-[#14F195]' : 'text-red-400'}`}>
+                  {holding.change24h >= 0 ? '+' : ''}{holding.change24h}%
+                </p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="font-bold">${holding.valueUsd.toLocaleString()}</p>
-              <p className={`text-sm ${holding.change24h >= 0 ? 'text-[#14F195]' : 'text-red-400'}`}>
-                {holding.change24h >= 0 ? '+' : ''}{holding.change24h}%
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -363,6 +367,22 @@ function HoldingsTab({ portfolio }: { portfolio: PortfolioData | null }) {
 // DeFi Tab
 function DeFiTab({ portfolio }: { portfolio: PortfolioData | null }) {
   if (!portfolio) return null;
+
+  const hasDeFi = portfolio.lending.length > 0 || portfolio.vaults.length > 0 || portfolio.liquidity.length > 0;
+
+  if (!hasDeFi) {
+    return (
+      <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-800">
+        <div className="text-center py-12">
+          <BankIcon size={60} />
+          <h3 className="text-xl font-bold mt-4 mb-2">No DeFi Positions</h3>
+          <p className="text-gray-400 max-w-md mx-auto">
+            Start earning yield by depositing into lending protocols, vaults, or liquidity pools.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -372,31 +392,35 @@ function DeFiTab({ portfolio }: { portfolio: PortfolioData | null }) {
           <BankIcon size={24} />
           Lending Positions
         </h3>
-        <div className="space-y-3">
-          {portfolio.lending.map((position, i) => (
-            <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  position.type === 'lending_deposit' ? 'bg-[#14F195]/20' : 'bg-red-400/20'
-                }`}>
-                  {position.type === 'lending_deposit' ? '↓' : '↑'}
+        {portfolio.lending.length === 0 ? (
+          <p className="text-gray-400 text-center py-4">No lending positions</p>
+        ) : (
+          <div className="space-y-3">
+            {portfolio.lending.map((position, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    position.type === 'lending_deposit' ? 'bg-[#14F195]/20' : 'bg-red-400/20'
+                  }`}>
+                    {position.type === 'lending_deposit' ? '↓' : '↑'}
+                  </div>
+                  <div>
+                    <p className="font-bold">{position.tokenSymbol}</p>
+                    <p className="text-gray-400 text-sm capitalize">
+                      {position.type === 'lending_deposit' ? 'Deposited' : 'Borrowed'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold">{position.tokenSymbol}</p>
-                  <p className="text-gray-400 text-sm capitalize">
-                    {position.type === 'lending_deposit' ? 'Deposited' : 'Borrowed'}
+                <div className="text-right">
+                  <p className="font-bold">${Math.abs(position.valueUsd).toLocaleString()}</p>
+                  <p className={`text-sm ${position.apy >= 0 ? 'text-[#14F195]' : 'text-red-400'}`}>
+                    {position.apy >= 0 ? '+' : ''}{position.apy}% APY
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold">${Math.abs(position.valueUsd).toLocaleString()}</p>
-                <p className={`text-sm ${position.apy >= 0 ? 'text-[#14F195]' : 'text-red-400'}`}>
-                  {position.apy >= 0 ? '+' : ''}{position.apy}% APY
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Vaults */}
@@ -405,20 +429,24 @@ function DeFiTab({ portfolio }: { portfolio: PortfolioData | null }) {
           <ChartIcon size={24} />
           Vault Positions
         </h3>
-        <div className="space-y-3">
-          {portfolio.vaults.map((vault, i) => (
-            <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
-              <div>
-                <p className="font-bold">{vault.vaultName}</p>
-                <p className="text-gray-400 text-sm">{vault.deposited} {vault.tokenSymbol}</p>
+        {portfolio.vaults.length === 0 ? (
+          <p className="text-gray-400 text-center py-4">No vault positions</p>
+        ) : (
+          <div className="space-y-3">
+            {portfolio.vaults.map((vault, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
+                <div>
+                  <p className="font-bold">{vault.vaultName}</p>
+                  <p className="text-gray-400 text-sm">{vault.deposited} {vault.tokenSymbol}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">${vault.valueUsd.toLocaleString()}</p>
+                  <p className="text-[#14F195] text-sm">+{vault.apy}% APY</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold">${vault.valueUsd.toLocaleString()}</p>
-                <p className="text-[#14F195] text-sm">+{vault.apy}% APY</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Liquidity */}
@@ -427,22 +455,26 @@ function DeFiTab({ portfolio }: { portfolio: PortfolioData | null }) {
           <WaterIcon size={24} />
           Liquidity Positions
         </h3>
-        <div className="space-y-3">
-          {portfolio.liquidity.map((lp, i) => (
-            <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
-              <div>
-                <p className="font-bold">{lp.poolName}</p>
-                <p className="text-gray-400 text-sm">
-                  {lp.token0.amount} {lp.token0.symbol} + {lp.token1.amount} {lp.token1.symbol}
-                </p>
+        {portfolio.liquidity.length === 0 ? (
+          <p className="text-gray-400 text-center py-4">No liquidity positions</p>
+        ) : (
+          <div className="space-y-3">
+            {portfolio.liquidity.map((lp, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
+                <div>
+                  <p className="font-bold">{lp.poolName}</p>
+                  <p className="text-gray-400 text-sm">
+                    {lp.token0.amount} {lp.token0.symbol} + {lp.token1.amount} {lp.token1.symbol}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">${lp.valueUsd.toLocaleString()}</p>
+                  <p className="text-[#14F195] text-sm">+{lp.apy}% APY</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold">${lp.valueUsd.toLocaleString()}</p>
-                <p className="text-[#14F195] text-sm">+{lp.apy}% APY</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
