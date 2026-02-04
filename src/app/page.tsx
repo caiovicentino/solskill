@@ -23,6 +23,9 @@ import {
   PortfolioIcon,
 } from '@/components/AnimatedIcons';
 import RegisterFlow from '@/components/RegisterFlow';
+import LiveSwapDemo from '@/components/LiveSwapDemo';
+import PriceTicker from '@/components/PriceTicker';
+import LiveStats from '@/components/LiveStats';
 
 export default function Home() {
   const { ready, authenticated, user, login, logout } = usePrivy();
@@ -57,6 +60,8 @@ export default function Home() {
         />
       </div>
 
+      <PriceTicker />
+      
       <div className="relative container mx-auto px-4 py-8">
         {/* Navigation */}
         <nav className="flex justify-between items-center mb-16 relative z-10">
@@ -177,6 +182,49 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* Live Demo Section */}
+        <section className="py-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold mb-4">Try It Live</h2>
+              <p className="text-gray-400 mb-6">
+                This is a real swap quote from Jupiter Ultra API. No mock data.
+                Your agents get the same real-time access to Solana DeFi.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-gray-300">
+                  <span className="w-8 h-8 rounded-full bg-[#14F195]/20 flex items-center justify-center text-[#14F195]">1</span>
+                  <span>Agent calls GET /api/v1/jupiter/quote</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-300">
+                  <span className="w-8 h-8 rounded-full bg-[#14F195]/20 flex items-center justify-center text-[#14F195]">2</span>
+                  <span>SolSkill queries Jupiter Ultra API</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-300">
+                  <span className="w-8 h-8 rounded-full bg-[#14F195]/20 flex items-center justify-center text-[#14F195]">3</span>
+                  <span>Returns best route with real prices</span>
+                </div>
+              </div>
+              <div className="mt-8 bg-black/50 rounded-xl p-4 border border-gray-800">
+                <code className="text-sm text-gray-400">
+                  <span className="text-[#14F195]">curl</span> {'"'}https://solskill.ai/api/v1/jupiter/quote?<br/>
+                  &nbsp;&nbsp;inputMint=So111...&amp;outputMint=EPjF...&amp;amount=1000000000{'"'}
+                </code>
+              </div>
+            </div>
+            <LiveSwapDemo />
+          </div>
+        </section>
+
+        {/* Live Stats Section */}
+        <section className="py-12">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Live Platform Stats</h2>
+            <p className="text-gray-400 text-sm">Real-time data from SolSkill network</p>
+          </div>
+          <LiveStats />
+        </section>
 
         {/* Features Section */}
         <section className="py-20">
