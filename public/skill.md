@@ -32,11 +32,13 @@ curl -H "Authorization: Bearer solskill_your_api_key_here" ...
 - `GET /jupiter/quote` — Swap quote
 - `GET /raydium/quote` — Raydium quote
 - `GET /raydium/pools` — List pools
-- `GET /kamino/markets` — Lending markets
+- `GET /kamino/markets` — Lending markets with supply/borrow APY
 - `GET /kamino/reserves` — Reserves with APY
-- `GET /kamino/vaults` — Yield vaults
+- `GET /kamino/vaults` — Yield vaults with APY and TVL
 - `GET /kamino/positions` — User positions
 - `GET /wallet/balance` — Wallet balances
+- `GET /stats` — Platform statistics (agents, volume, uptime)
+- `GET /portfolio` — Full portfolio with positions (requires wallet param)
 
 ### Protected Endpoints (API key required)
 - `POST /jupiter/swap` — Execute swap
@@ -409,7 +411,64 @@ curl -X POST https://solskill.ai/api/v1/raydium/pools/add-liquidity \
 
 ---
 
+## Platform Stats
+
+Get real-time platform statistics:
+
+```bash
+GET /stats
+```
+
+Response:
+```json
+{
+  "success": true,
+  "stats": {
+    "agents": {"total": 47, "active24h": 28},
+    "activity": {"quotes24h": 1284, "swaps24h": 156, "volumeUsd24h": 45823},
+    "protocols": {
+      "jupiter": {"status": "operational", "latencyMs": 280},
+      "kamino": {"status": "operational", "latencyMs": 150},
+      "raydium": {"status": "operational", "latencyMs": 200}
+    },
+    "uptime": "99.9%"
+  }
+}
+```
+
+---
+
+## Lending Markets Detail
+
+Get detailed lending market info with APY:
+
+```bash
+GET /kamino/markets?token=SOL
+```
+
+Response:
+```json
+{
+  "success": true,
+  "markets": [{
+    "mint": "So11...",
+    "symbol": "SOL",
+    "supplyApy": 3.2,
+    "borrowApy": 5.8,
+    "totalSupplyUsd": 1500000,
+    "totalBorrowUsd": 450000,
+    "utilization": 30,
+    "maxLtv": 75,
+    "liquidationThreshold": 80
+  }]
+}
+```
+
+---
+
 ## Support
 
-- Docs: https://solskill.ai
+- Live Demo: https://solskill.ai (try swap quotes without auth!)
+- Interactive API Docs: https://solskill.ai/docs
 - Dashboard: https://solskill.ai/dashboard
+- GitHub: https://github.com/caiovicentino/solskill
