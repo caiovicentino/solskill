@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidSolanaAddress, fetchWithTimeout } from '@/lib/solana';
 
-// Jupiter API - try multiple endpoints
-const JUPITER_APIS = [
-  'https://api.jup.ag/swap/v1',
-  'https://quote-api.jup.ag/v6',
-];
+// Jupiter Ultra API
+const JUPITER_API = 'https://api.jup.ag/ultra/v1';
+const JUPITER_API_KEY = process.env.JUPITER_API_KEY || 'a6ae79cc-4699-4de4-8b93-826698f419d4';
 
 export async function GET(req: NextRequest) {
   try {
@@ -56,42 +54,28 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Try Jupiter APIs
-    let quote = null;
-    let lastError = '';
+    // Call Jupiter Ultra API
+    const quoteUrl = `${JUPITER_API}/order?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`;
+    console.log(`Jupiter Ultra API: ${quoteUrl}`);
     
-    for (const baseUrl of JUPITER_APIS) {
-      try {
-        const quoteUrl = `${baseUrl}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`;
-        console.log(`Trying Jupiter API: ${quoteUrl}`);
-        
-        const quoteRes = await fetchWithTimeout(quoteUrl, {
-          headers: {
-            'Accept': 'application/json',
-          }
-        }, 15000);
-        
-        if (quoteRes.ok) {
-          quote = await quoteRes.json();
-          console.log(`Jupiter quote success from ${baseUrl}`);
-          break;
-        } else {
-          const errorText = await quoteRes.text();
-          lastError = `${baseUrl}: ${quoteRes.status} - ${errorText}`;
-          console.log(`Jupiter API error: ${lastError}`);
-        }
-      } catch (err: any) {
-        lastError = `${baseUrl}: ${err.message}`;
-        console.log(`Jupiter API exception: ${lastError}`);
+    const quoteRes = await fetchWithTimeout(quoteUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'x-api-key': JUPITER_API_KEY,
       }
-    }
+    }, 15000);
     
-    if (!quote) {
+    if (!quoteRes.ok) {
+      const errorText = await quoteRes.text();
+      console.error(`Jupiter API error: ${quoteRes.status} - ${errorText}`);
       return NextResponse.json(
-        { success: false, error: `Jupiter API failed: ${lastError}` },
-        { status: 502 }
+        { success: false, error: `Jupiter API error: ${quoteRes.status} - ${errorText}` },
+        { status: quoteRes.status }
       );
     }
+    
+    const quote = await quoteRes.json();
+    console.log('Jupiter quote success');
 
     return NextResponse.json({
       success: true,
@@ -102,24 +86,28 @@ export async function GET(req: NextRequest) {
         outAmount: quote.outAmount,
         otherAmountThreshold: quote.otherAmountThreshold,
         priceImpactPct: quote.priceImpactPct,
+        slippageBps: quote.slippageBps,
+        // USD values from Ultra API
+        inUsdValue: quote.inUsdValue,
+        outUsdValue: quote.outUsdValue,
+        // Router info
+        router: quote.router,
+        mode: quote.mode,
+        // Route plan
         routePlan: quote.routePlan?.map((r: any) => ({
           swapInfo: {
             ammKey: r.swapInfo?.ammKey,
             label: r.swapInfo?.label,
             inputMint: r.swapInfo?.inputMint,
             outputMint: r.swapInfo?.outputMint,
+            inAmount: r.swapInfo?.inAmount,
+            outAmount: r.swapInfo?.outAmount,
           },
           percent: r.percent,
+          usdValue: r.usdValue,
         })),
       },
-      // Include quote hash for swap verification
-      quoteId: Buffer.from(JSON.stringify({
-        inputMint: quote.inputMint,
-        outputMint: quote.outputMint,
-        inAmount: quote.inAmount,
-        outAmount: quote.outAmount,
-        timestamp: Date.now(),
-      })).toString('base64'),
+      requestId: quote.requestId,
     });
   } catch (error: any) {
     console.error('Jupiter quote error:', error);
