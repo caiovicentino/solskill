@@ -11,7 +11,7 @@ const Player = dynamic(
 // Verified Lottie animation URLs
 const ICON_ANIMATIONS = {
   // Tools & Tech
-  tool: 'https://assets9.lottiefiles.com/packages/lf20_rd9j4ioq.json',
+  tool: 'https://assets3.lottiefiles.com/packages/lf20_ydo1amjm.json', // using lock animation as fallback
   gear: 'https://assets2.lottiefiles.com/packages/lf20_cwA7Cn.json',
   
   // Security
@@ -30,7 +30,7 @@ const ICON_ANIMATIONS = {
   
   // Finance
   swap: 'https://assets3.lottiefiles.com/packages/lf20_xvrofzfk.json',
-  exchange: 'https://assets6.lottiefiles.com/packages/lf20_awdvgrve.json',
+  exchange: 'https://assets3.lottiefiles.com/packages/lf20_xvrofzfk.json', // using swap animation
   bank: 'https://assets10.lottiefiles.com/packages/lf20_06a6pf9i.json',
   vault: 'https://assets9.lottiefiles.com/packages/lf20_rmfmjy5d.json',
   chart: 'https://assets10.lottiefiles.com/packages/lf20_2cwDXD.json',
