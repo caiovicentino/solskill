@@ -39,6 +39,26 @@ const API_EXAMPLES = [
     auth: false,
   },
   {
+    id: 'kamino-vaults',
+    name: 'Kamino Vaults',
+    method: 'GET',
+    endpoint: '/api/v1/kamino/vaults',
+    description: 'Get yield-bearing vaults with APY',
+    params: [
+      { name: 'token', value: 'SOL', desc: 'Filter by token symbol' },
+    ],
+    auth: false,
+  },
+  {
+    id: 'kamino-markets',
+    name: 'Kamino Markets',
+    method: 'GET',
+    endpoint: '/api/v1/kamino/markets',
+    description: 'Get lending markets with supply/borrow rates',
+    params: [],
+    auth: false,
+  },
+  {
     id: 'portfolio',
     name: 'Get Portfolio',
     method: 'GET',
