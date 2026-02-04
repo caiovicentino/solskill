@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidSolanaAddress, fetchWithTimeout } from '@/lib/solana';
 
-const JUPITER_API = 'https://quote-api.jup.ag/v6';
+// Jupiter API - try multiple endpoints
+const JUPITER_APIS = [
+  'https://api.jup.ag/swap/v1',
+  'https://quote-api.jup.ag/v6',
+];
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,20 +56,42 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get quote from Jupiter with timeout
-    const quoteUrl = `${JUPITER_API}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`;
+    // Try Jupiter APIs
+    let quote = null;
+    let lastError = '';
     
-    const quoteRes = await fetchWithTimeout(quoteUrl, {}, 15000);
+    for (const baseUrl of JUPITER_APIS) {
+      try {
+        const quoteUrl = `${baseUrl}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`;
+        console.log(`Trying Jupiter API: ${quoteUrl}`);
+        
+        const quoteRes = await fetchWithTimeout(quoteUrl, {
+          headers: {
+            'Accept': 'application/json',
+          }
+        }, 15000);
+        
+        if (quoteRes.ok) {
+          quote = await quoteRes.json();
+          console.log(`Jupiter quote success from ${baseUrl}`);
+          break;
+        } else {
+          const errorText = await quoteRes.text();
+          lastError = `${baseUrl}: ${quoteRes.status} - ${errorText}`;
+          console.log(`Jupiter API error: ${lastError}`);
+        }
+      } catch (err: any) {
+        lastError = `${baseUrl}: ${err.message}`;
+        console.log(`Jupiter API exception: ${lastError}`);
+      }
+    }
     
-    if (!quoteRes.ok) {
-      const error = await quoteRes.text();
+    if (!quote) {
       return NextResponse.json(
-        { success: false, error: `Jupiter API error: ${error}` },
-        { status: quoteRes.status }
+        { success: false, error: `Jupiter API failed: ${lastError}` },
+        { status: 502 }
       );
     }
-
-    const quote = await quoteRes.json();
 
     return NextResponse.json({
       success: true,
