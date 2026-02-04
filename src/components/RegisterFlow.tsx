@@ -68,11 +68,11 @@ https://solskill.ai`;
     setError('');
 
     try {
-      const res = await fetch('/api/v1/agents/register', {
+      const res = await fetch('/api/v1/agents/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: agentName,
+          agentName: agentName,
           tweetUrl: tweetUrl.trim(),
           verificationCode,
         }),
@@ -81,11 +81,11 @@ https://solskill.ai`;
       const data = await res.json();
       
       if (data.success) {
-        setApiKey(data.agent.apiKey);
+        setApiKey(data.apiKey);
         setStep('done');
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
-        onComplete?.(data.agent.apiKey, agentName);
+        onComplete?.(data.apiKey, agentName);
       } else {
         setError(data.error || 'Verification failed. Make sure you posted the exact verification code.');
       }
