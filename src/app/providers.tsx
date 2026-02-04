@@ -14,7 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           theme: 'dark',
           accentColor: '#14F195',
         },
-        loginMethods: ['email', 'twitter'],
+        loginMethods: ['email'],
         embeddedWallets: {
           solana: {
             createOnLogin: 'users-without-wallets',

@@ -1,21 +1,48 @@
-# 🛠️ SolSkill - DeFi Skills for AI Agents
+# 🛠️ SolSkill — DeFi Skills for AI Agents
 
-**Give your AI agent a wallet. Let it trade, lend, and earn yield on Solana.**
+> **Give your AI agent a wallet. Let it trade, lend, and earn yield on Solana.**
 
-[![Live Demo](https://img.shields.io/badge/demo-solskill.ai-blue?style=for-the-badge)](https://solskill.ai)
-[![Skill Spec](https://img.shields.io/badge/skill-spec-green?style=for-the-badge)](https://solskill.ai/skill.md)
+[![Live Demo](https://img.shields.io/badge/🚀_Demo-solskill.ai-9945FF?style=for-the-badge)](https://solskill.ai)
+[![Skill Spec](https://img.shields.io/badge/📋_Skill_Spec-skill.md-14F195?style=for-the-badge)](https://solskill.ai/skill.md)
+[![Built on Solana](https://img.shields.io/badge/Built_on-Solana-black?style=for-the-badge&logo=solana)](https://solana.com)
 
 ---
 
 ## 🎯 What is SolSkill?
 
-SolSkill enables AI agents to perform **self-custodial DeFi operations** on Solana. No shared keys, no centralized custody—each agent gets its own embedded wallet powered by Privy.
+SolSkill is a **skill layer** that enables AI agents to perform **self-custodial DeFi operations** on Solana. No shared keys, no centralized custody—each agent gets its own embedded wallet powered by Privy.
 
-Think of it as a **DeFi skill layer** for autonomous agents:
-- 🔄 **Swap tokens** via Jupiter aggregator
-- 🏦 **Lend & borrow** on Kamino Finance
-- 📈 **Deposit into yield vaults** for passive income
-- 💰 **Manage portfolio** across Solana DeFi
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│    AI Agent     │────▶│     SolSkill     │────▶│  Solana DeFi    │
+│  (Claude, GPT,  │     │   Skill Layer    │     │ Jupiter, Kamino │
+│   Custom, etc)  │     │  + Privy Wallet  │     │ Raydium, etc    │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+### Why SolSkill?
+
+- 🔐 **Self-Custodial** — Each agent has its own embedded wallet. No shared keys.
+- 🤖 **Agent-First** — Designed for autonomous registration and operation
+- 👤 **Human Override** — Claim system allows humans to supervise when needed
+- 📊 **Real-Time Dashboard** — Monitor all agent activity and positions
+- 📝 **Audit Trail** — Complete logging for compliance and debugging
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔄 **Token Swaps** | Trade via Jupiter aggregator with best prices |
+| 🏦 **Lending & Borrowing** | Deposit, borrow, and earn yield on Kamino Finance |
+| 📈 **Yield Vaults** | Access automated DeFi strategies |
+| 💰 **Portfolio Management** | Track balances across Solana DeFi |
+| 📝 **Limit Orders** | Set buy/sell orders at target prices |
+| 🔔 **Price Alerts** | Get notified when tokens hit your targets |
+| 💧 **Liquidity Pools** | Provide liquidity on Raydium |
+
+---
 
 ## 🚀 Quick Start for Agents
 
@@ -24,164 +51,192 @@ Think of it as a **DeFi skill layer** for autonomous agents:
 ```bash
 curl -X POST https://solskill.ai/api/v1/agents/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "my-trading-agent",
-    "description": "Automated DeFi trader"
-  }'
+  -d '{"name": "my-trading-agent", "description": "Automated DeFi trader"}'
 ```
 
 **Response:**
 ```json
 {
-  "agentId": "agent_abc123",
-  "apiKey": "sk_live_...",
-  "walletAddress": "7xKXtg...",
-  "claimCode": "CLAWFI-ABC123"
+  "success": true,
+  "agent_id": "agent_abc123",
+  "claim_url": "https://solskill.ai/claim/abc123xyz",
+  "expires_in": 3600,
+  "message": "Have your human visit claim_url to authorize"
 }
 ```
 
-### 2. Fund the Wallet
+### 2. Human Claims the Agent
 
-Send SOL to your agent's wallet address, or have a human claim ownership using the `claimCode`.
+Human visits `claim_url` → connects wallet → approves → receives API key.
 
-### 3. Start Trading
+### 3. Start Trading!
 
 ```bash
-# Swap 1 SOL for USDC
-curl -X POST https://solskill.ai/api/v1/swap \
-  -H "Authorization: Bearer sk_live_..." \
+# Get a swap quote
+curl "https://solskill.ai/api/v1/jupiter/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000"
+
+# Execute the swap
+curl -X POST https://solskill.ai/api/v1/jupiter/swap \
+  -H "x-api-key: solskill_..." \
   -H "Content-Type: application/json" \
   -d '{
     "inputMint": "So11111111111111111111111111111111111111112",
     "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    "amount": 1000000000,
+    "amount": "1000000000",
     "slippageBps": 50
   }'
 ```
 
-## ✨ Features
+---
 
-### 🤖 Agent Self-Registration
-Agents can create their own wallets programmatically—no human intervention needed for setup.
+## 🏗️ Architecture
 
-### 🔐 Human Claim Verification
-Wallet ownership can be claimed by humans using a verification code, enabling hybrid human-agent control.
+```
+┌────────────────────────────────────────────────────────────────┐
+│                         SolSkill                               │
+├────────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │   Next.js    │  │    Privy     │  │     Solana RPC       │ │
+│  │   Frontend   │  │   Wallets    │  │   (Helius/Triton)    │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘ │
+├────────────────────────────────────────────────────────────────┤
+│                      API Layer (/api/v1)                       │
+├────────────────────────────────────────────────────────────────┤
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────┐ │
+│  │  Jupiter   │  │   Kamino   │  │  Raydium   │  │  Wallet  │ │
+│  │   Swaps    │  │  Lending   │  │   Pools    │  │  Mgmt    │ │
+│  └────────────┘  └────────────┘  └────────────┘  └──────────┘ │
+├────────────────────────────────────────────────────────────────┤
+│                        Protocols                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐               │
+│  │  Jupiter   │  │   Kamino   │  │  Raydium   │               │
+│  │    DEX     │  │  Finance   │  │    AMM     │               │
+│  └────────────┘  └────────────┘  └────────────┘               │
+└────────────────────────────────────────────────────────────────┘
+```
 
-### 📊 Real-Time Dashboard
-Monitor all agent activity, balances, and transactions at [solskill.ai/dashboard](https://solskill.ai/dashboard).
+---
 
-### 📝 Activity Logging
-Complete audit trail of every operation for compliance and debugging.
+## 🔧 Tech Stack
 
-### 🛡️ Self-Custodial Security
-Each agent has its own Privy embedded wallet. Private keys never leave the secure enclave.
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 15, React 19, TailwindCSS |
+| **Auth & Wallets** | Privy Embedded Wallets |
+| **Blockchain** | Solana (Mainnet) |
+| **DEX Aggregation** | Jupiter v6 API |
+| **Lending Protocol** | Kamino Finance |
+| **Liquidity Pools** | Raydium |
+| **Deployment** | Vercel |
 
-## 🔧 API Endpoints
+---
+
+## 📖 API Endpoints
 
 ### Agent Management
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
 | `/api/v1/agents/register` | POST | - | Create a new agent wallet |
-| `/api/v1/agents/:id/claim` | POST | - | Human claims agent ownership |
-| `/api/v1/activity` | GET | API Key | Get agent activity log |
+| `/api/v1/claim/:code/info` | GET | - | Get claim info |
+| `/api/v1/claim/:code/verify-tweet` | POST | - | Verify claim tweet |
 
 ### Wallet Operations
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
-| `/api/v1/wallet/balance` | GET | - | Get wallet SOL & token balances |
-| `/api/v1/wallet/send` | POST | API Key | Send SOL or SPL tokens |
-| `/api/v1/wallet/receive` | GET | API Key | Get deposit address + QR code |
-| `/api/v1/wallet/transactions` | GET | API Key | Get recent transactions |
+| `/api/v1/wallet/balance` | GET | - | Get wallet balances |
+| `/api/v1/wallet/send` | POST | ✅ | Send SOL or SPL tokens |
+| `/api/v1/wallet/receive` | GET | ✅ | Get deposit address + QR |
+| `/api/v1/wallet/transactions` | GET | ✅ | Transaction history |
 
 ### Jupiter (Swaps)
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
 | `/api/v1/jupiter/tokens` | GET | - | List available tokens |
 | `/api/v1/jupiter/quote` | GET | - | Get swap quote |
-| `/api/v1/jupiter/swap` | POST | API Key | Execute token swap |
+| `/api/v1/jupiter/swap` | POST | ✅ | Execute token swap |
 
-### Kamino Finance (Lending & Vaults)
+### Kamino Finance
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
 | `/api/v1/kamino/markets` | GET | - | List lending markets |
-| `/api/v1/kamino/reserves` | GET | - | Get market reserves |
+| `/api/v1/kamino/reserves` | GET | - | Get reserves with APY |
 | `/api/v1/kamino/vaults` | GET | - | List yield vaults |
-| `/api/v1/kamino/deposit` | POST | API Key | Deposit/withdraw from lending |
-| `/api/v1/kamino/borrow` | POST | API Key | Borrow/repay assets |
-| `/api/v1/kamino/positions` | GET | API Key | Get user positions |
+| `/api/v1/kamino/deposit` | POST | ✅ | Deposit/withdraw |
+| `/api/v1/kamino/borrow` | POST | ✅ | Borrow/repay |
+| `/api/v1/kamino/positions` | GET | - | User positions |
 
-### Raydium (Liquidity Pools)
+### Raydium (Liquidity)
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
-| `/api/v1/raydium/pools` | GET | - | List pools with TVL, APY, tokens |
-| `/api/v1/raydium/pools/:poolId` | GET | - | Get specific pool details |
-| `/api/v1/raydium/pools/add-liquidity` | POST | API Key | Add liquidity to pool |
-| `/api/v1/raydium/pools/remove-liquidity` | POST | API Key | Remove liquidity from pool |
+| `/api/v1/raydium/pools` | GET | - | List pools with APY |
+| `/api/v1/raydium/pools/:id` | GET | - | Pool details |
+| `/api/v1/raydium/quote` | GET | - | Get swap quote |
+| `/api/v1/raydium/swap` | POST | ✅ | Execute swap |
+| `/api/v1/raydium/pools/add-liquidity` | POST | ✅ | Add liquidity |
+| `/api/v1/raydium/pools/remove-liquidity` | POST | ✅ | Remove liquidity |
 
-## 🏗️ Tech Stack
+### Orders & Alerts
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/v1/orders` | GET/POST/DELETE | ✅ | Limit orders |
+| `/api/v1/alerts` | GET/POST/DELETE | ✅ | Price alerts |
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Next.js 16, React, TailwindCSS |
-| **Auth & Wallets** | Privy Embedded Wallets |
-| **Blockchain** | Solana |
-| **DEX Aggregation** | Jupiter |
-| **Lending & Vaults** | Kamino Finance |
-| **Database** | PostgreSQL |
-
-## 📖 Skill Specification
-
-SolSkill follows the emerging **Agent Skill** specification. The full skill definition is available at:
-
-**[https://solskill.ai/skill.md](https://solskill.ai/skill.md)**
-
-This allows any compatible AI agent to discover and use SolSkill capabilities automatically.
+---
 
 ## 🔒 Security Model
 
-1. **Embedded Wallets**: Each agent gets a unique Privy embedded wallet
-2. **No Shared Keys**: Private keys are never exposed to the application layer
-3. **Human Override**: Claim system allows humans to take control when needed
-4. **Rate Limiting**: API rate limits prevent abuse
-5. **Audit Logging**: Every transaction is logged for review
+1. **Embedded Wallets** — Each agent gets a unique Privy embedded wallet
+2. **No Shared Keys** — Private keys never leave Privy's secure enclave
+3. **Human Override** — Claim system allows humans to take control
+4. **API Key Auth** — Rate-limited API access per agent
+5. **Audit Logging** — Every transaction logged for review
 
-## 🎮 Example Use Cases
+---
+
+## 🎮 Use Case Examples
 
 ### Autonomous Trading Bot
 ```python
-# Agent detects arbitrage opportunity
-solskill.swap(input="SOL", output="USDC", amount=10)
-# ... wait for price movement ...
-solskill.swap(input="USDC", output="SOL", amount=calculated_amount)
+# Agent detects opportunity and executes
+quote = solskill.jupiter_quote(input="SOL", output="USDC", amount=10)
+solskill.jupiter_swap(quote)
 ```
 
 ### Yield Optimization
 ```python
 # Agent finds best yield and deposits
-best_vault = solskill.get_best_vault(asset="USDC")
-solskill.kamino_deposit(vault=best_vault, amount=1000)
+vaults = solskill.kamino_vaults(token="USDC", minApy=10)
+solskill.kamino_deposit(vault=vaults[0], amount=1000)
 ```
 
 ### Portfolio Rebalancing
 ```python
-# Agent maintains target allocation
-balances = solskill.get_balances()
-if balances["SOL"] / total > 0.5:
-    solskill.swap(input="SOL", output="USDC", amount=excess)
+# Agent maintains 50/50 allocation
+positions = solskill.kamino_positions()
+if positions["SOL"] > positions["USDC"]:
+    solskill.jupiter_swap(input="SOL", output="USDC", amount=excess)
 ```
+
+---
 
 ## 🌐 Links
 
-- **Live App**: [https://solskill.ai](https://solskill.ai)
-- **Skill Spec**: [https://solskill.ai/skill.md](https://solskill.ai/skill.md)
-- **API Docs**: [https://solskill.ai/docs](https://solskill.ai/docs)
+| Resource | URL |
+|----------|-----|
+| **Live Demo** | [https://solskill.ai](https://solskill.ai) |
+| **Skill Spec** | [https://solskill.ai/skill.md](https://solskill.ai/skill.md) |
+| **Dashboard** | [https://solskill.ai/dashboard](https://solskill.ai/dashboard) |
 
-## 🏆 Hackathon Submission
+---
 
-Built for **AI Agents x DeFi Hackathon** — demonstrating how autonomous agents can safely participate in decentralized finance with proper custody and human oversight.
+## 🏆 Hackathon
+
+Built for **Solana AI Hackathon** — demonstrating how autonomous AI agents can safely participate in DeFi with proper custody and human oversight.
+
+See [HACKATHON.md](./HACKATHON.md) for submission details.
 
 ---
 
 <p align="center">
-  <b>🛠️ SolSkill — Because your AI deserves a wallet too.</b>
+  <strong>🛠️ SolSkill — Because your AI deserves a wallet too.</strong>
 </p>
