@@ -43,7 +43,7 @@ export default function RegisterFlow({ onComplete }: RegisterFlowProps) {
   };
 
   const getTweetText = () => {
-    return `🤖 Registering my AI agent "${agentName}" on @SolSkill_
+    return `🤖 Registering my AI agent "${agentName}" on SolSkill
 
 Verification: ${verificationCode}
 
