@@ -1,12 +1,12 @@
 ---
 name: solskill
 version: 1.0.0
-description: DeFi Skills for AI Agents on Solana - Jupiter swaps, Kamino lending & vaults
+description: DeFi Skills for AI Agents on Solana - Jupiter swaps, Kamino lending & vaults, Raydium liquidity
 homepage: https://solskill.ai
 metadata: {"category": "defi", "chain": "solana", "api_base": "https://solskill.ai/api/v1"}
 ---
 
-# SolSkill DeFi Skills
+# SolSkill — DeFi Skills for AI Agents
 
 You have access to DeFi operations on Solana via the SolSkill API.
 
@@ -17,44 +17,43 @@ https://solskill.ai/api/v1
 
 ## Authentication
 
-Protected endpoints require an API key. Include it in your request:
+Protected endpoints require an API key:
 
 ```bash
 # Option 1: x-api-key header (recommended)
 curl -H "x-api-key: solskill_your_api_key_here" ...
 
-# Option 2: Authorization header
+# Option 2: Authorization header  
 curl -H "Authorization: Bearer solskill_your_api_key_here" ...
 ```
 
-### Public Endpoints (no auth required)
-- `GET /jupiter/tokens`
-- `GET /jupiter/quote`
-- `GET /raydium/quote`
-- `GET /kamino/markets`
-- `GET /kamino/reserves`
-- `GET /kamino/vaults`
-- `GET /kamino/positions`
-- `GET /wallet/balance`
+### Public Endpoints (no auth)
+- `GET /jupiter/tokens` — List tokens
+- `GET /jupiter/quote` — Swap quote
+- `GET /raydium/quote` — Raydium quote
+- `GET /raydium/pools` — List pools
+- `GET /kamino/markets` — Lending markets
+- `GET /kamino/reserves` — Reserves with APY
+- `GET /kamino/vaults` — Yield vaults
+- `GET /kamino/positions` — User positions
+- `GET /wallet/balance` — Wallet balances
 
 ### Protected Endpoints (API key required)
-- `POST /jupiter/swap`
-- `POST /raydium/swap`
-- `POST /kamino/deposit`
-- `POST /kamino/borrow`
-- `POST /wallet/send` - Send SOL or SPL tokens
-- `GET /wallet/receive` - Get deposit address + QR code
-- `GET /wallet/transactions` - Get recent transactions
-
-## Rate Limits
-- 100 requests per minute per API key/IP
-- Rate limit headers included in responses
+- `POST /jupiter/swap` — Execute swap
+- `POST /raydium/swap` — Raydium swap
+- `POST /raydium/pools/add-liquidity` — Add liquidity
+- `POST /raydium/pools/remove-liquidity` — Remove liquidity
+- `POST /kamino/deposit` — Deposit/withdraw
+- `POST /kamino/borrow` — Borrow/repay
+- `POST /wallet/send` — Send tokens
+- `GET /wallet/receive` — Deposit address
+- `GET /wallet/transactions` — Transaction history
+- `POST /orders` — Limit orders
+- `POST /alerts` — Price alerts
 
 ---
 
 ## Quick Start: Agent Self-Registration
-
-Agents can register themselves to get API credentials without human intervention.
 
 ### 1. Register Your Agent
 ```bash
@@ -74,277 +73,268 @@ Response:
 }
 ```
 
-### 2. Claim Flow
-The `claim_url` is a one-time link for human authorization:
-
-1. **Agent registers** → receives `claim_url`
-2. **Human visits** `claim_url` in browser
-3. **Human connects wallet** and approves the agent
-4. **Page displays API key** for the human to provide to agent
-5. **Agent stores credentials** locally
+### 2. Human Claims the Agent
+1. Human visits `claim_url` in browser
+2. Human connects wallet and approves
+3. Page displays API key
+4. Agent stores credentials
 
 ### 3. Store Credentials
-Save your API key to the standard location:
-
 ```bash
 mkdir -p ~/.config/solskill
 cat > ~/.config/solskill/credentials.json << 'EOF'
 {
   "api_key": "solskill_your_api_key_here",
-  "agent_id": "agent_abc123",
-  "registered_at": "2025-01-15T12:00:00Z"
+  "agent_id": "agent_abc123"
 }
 EOF
 chmod 600 ~/.config/solskill/credentials.json
 ```
 
-### 4. Use Credentials
+### 4. Use in Requests
 ```bash
-# Read API key from stored credentials
 API_KEY=$(jq -r .api_key ~/.config/solskill/credentials.json)
-
-# Use in requests
-curl -H "x-api-key: $API_KEY" https://solskill.ai/api/v1/jupiter/swap ...
+curl -H "x-api-key: $API_KEY" https://solskill.ai/api/v1/...
 ```
-
-### ⚠️ Security Warnings
-
-- **Never commit credentials** to git or share publicly
-- **claim_url expires** after 1 hour - register again if expired
-- **One claim per registration** - URL becomes invalid after use
-- **Credentials grant financial access** - protect like private keys
-- **Set file permissions** to 600 (owner read/write only)
-- **Rotate keys** if you suspect compromise via `/api/v1/agents/rotate`
 
 ---
 
-## Available Skills
+## Token Swaps (Jupiter)
 
-### 1. Token List
-Get popular token mints for swaps.
+### List Tokens
 ```bash
 GET /jupiter/tokens
-GET /jupiter/tokens?all=true  # Include all verified tokens
+GET /jupiter/tokens?all=true  # All verified tokens
 ```
 
-### 2. Swap Quote
-Get a quote for token swap.
+### Get Quote
 ```bash
-GET /jupiter/quote?inputMint=SOL_MINT&outputMint=USDC_MINT&amount=LAMPORTS
+GET /jupiter/quote?inputMint=SOL_MINT&outputMint=USDC_MINT&amount=LAMPORTS&slippageBps=50
 ```
-Parameters:
-- `inputMint`: Token to sell (mint address)
-- `outputMint`: Token to buy (mint address)
-- `amount`: Amount in smallest unit (lamports for SOL)
-- `slippageBps`: Slippage tolerance in bps (default: 50 = 0.5%, max: 5000)
 
-### 3. Execute Swap (Jupiter) ⚠️ Protected
-Build swap transaction via Jupiter aggregator.
+### Execute Swap ⚠️ Protected
 ```bash
 POST /jupiter/swap
 {
   "inputMint": "So11111111111111111111111111111111111111112",
   "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   "amount": "1000000000",
-  "userPublicKey": "YOUR_WALLET_ADDRESS",
+  "userPublicKey": "YOUR_WALLET",
   "slippageBps": 50
 }
 ```
-Returns base64-encoded transaction to sign and send.
 
-### 3b. Raydium Swap Quote
-Get a quote from Raydium DEX.
+---
+
+## Token Swaps (Raydium)
+
+### Get Quote
 ```bash
 GET /raydium/quote?inputMint=SOL_MINT&outputMint=USDC_MINT&amount=LAMPORTS
 ```
-Parameters:
-- `inputMint`: Token to sell (mint address)
-- `outputMint`: Token to buy (mint address)
-- `amount`: Amount in smallest unit (lamports for SOL)
-- `slippageBps`: Slippage tolerance in bps (default: 50, max: 5000)
 
-Response:
-```json
-{
-  "success": true,
-  "inputMint": "So11...",
-  "outputMint": "EPjF...",
-  "inAmount": "1000000000",
-  "outAmount": "98733987",
-  "priceImpact": 0,
-  "route": [{"poolId": "...", "inputMint": "...", "outputMint": "..."}]
-}
-```
-
-### 3c. Execute Swap (Raydium) ⚠️ Protected
-Build swap transaction via Raydium DEX.
+### Execute Swap ⚠️ Protected
 ```bash
 POST /raydium/swap
 {
   "inputMint": "So11111111111111111111111111111111111111112",
   "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   "amount": "1000000000",
-  "userPublicKey": "YOUR_WALLET_ADDRESS",
-  "slippageBps": 50,
-  "computeUnitPriceMicroLamports": 50000
+  "userPublicKey": "YOUR_WALLET",
+  "slippageBps": 50
 }
 ```
-Returns array of base64-encoded versioned transactions to sign and send in order.
 
-### 4. Check Wallet Balance
-```bash
-GET /wallet/balance?wallet=WALLET_ADDRESS
-```
+---
 
-### 5. Send Tokens ⚠️ Protected
-Transfer SOL or SPL tokens to another wallet.
+## Liquidity Pools (Raydium)
+
+### List Pools
 ```bash
-POST /wallet/send
-{
-  "to": "RECIPIENT_WALLET_ADDRESS",
-  "amount": 0.5,
-  "mint": "TOKEN_MINT_ADDRESS"  // Optional - omit for SOL
-}
+GET /raydium/pools?token=SOL&minTvl=1000000&minApy=10
 ```
-Parameters:
-- `to`: Recipient wallet address (required)
-- `amount`: Amount to send in human-readable units (required)
-- `mint`: Token mint address (optional - omit or use SOL mint for native SOL)
 
 Response:
 ```json
 {
   "success": true,
-  "type": "sol",
-  "transaction": "BASE64_ENCODED_TRANSACTION",
-  "from": "YOUR_WALLET",
-  "to": "RECIPIENT_WALLET",
-  "amount": 0.5,
-  "amountLamports": "500000000",
-  "lastValidBlockHeight": 123456789
-}
-```
-Returns base64-encoded transaction to sign and send.
-
-### 6. Get Receive Address ⚠️ Protected
-Get your agent's wallet address for receiving deposits.
-```bash
-GET /wallet/receive
-```
-Response:
-```json
-{
-  "success": true,
-  "wallet": "YOUR_WALLET_ADDRESS",
-  "deposit": {
-    "address": "YOUR_WALLET_ADDRESS",
-    "solanaPayUrl": "solana:YOUR_WALLET_ADDRESS",
-    "qrCode": {
-      "solanaPayQr": "https://api.qrserver.com/...",
-      "addressQr": "https://api.qrserver.com/..."
-    }
-  },
-  "explorer": "https://solscan.io/account/YOUR_WALLET"
+  "pools": [{
+    "id": "POOL_ADDRESS",
+    "type": "standard",
+    "tokenA": {"symbol": "SOL", "address": "..."},
+    "tokenB": {"symbol": "USDC", "address": "..."},
+    "tvl": 15000000,
+    "apr24h": 12.5,
+    "volume24h": 5000000
+  }]
 }
 ```
 
-### 7. Get Transactions ⚠️ Protected
-Get recent transaction history for your agent's wallet.
+### Get Pool Details
 ```bash
-GET /wallet/transactions?limit=10&before=SIGNATURE
+GET /raydium/pools/:poolId
 ```
-Parameters:
-- `limit`: Number of transactions to return (1-50, default: 10)
-- `before`: Signature to paginate from (for older transactions)
 
-Response:
-```json
+### Add Liquidity ⚠️ Protected
+```bash
+POST /raydium/pools/add-liquidity
 {
-  "success": true,
+  "poolId": "POOL_ADDRESS",
   "wallet": "YOUR_WALLET",
-  "transactions": [
-    {
-      "signature": "5UJr...",
-      "blockTime": 1706000000,
-      "timestamp": "2024-01-23T12:00:00.000Z",
-      "status": "success",
-      "fee": 5000,
-      "feeSol": "0.000005000",
-      "type": "transfer",
-      "description": "Received 1.5 SOL",
-      "changes": {
-        "sol": { "before": 2.0, "after": 3.5, "change": 1.5 }
-      }
-    }
-  ],
-  "count": 10,
-  "hasMore": true,
-  "pagination": {
-    "limit": 10,
-    "nextBefore": "LAST_SIGNATURE"
-  }
+  "amountA": "1000000000",
+  "slippage": 0.5
 }
 ```
 
-### 8. Kamino Markets
-Get lending market info.
+### Remove Liquidity ⚠️ Protected
+```bash
+POST /raydium/pools/remove-liquidity
+{
+  "poolId": "POOL_ADDRESS",
+  "wallet": "YOUR_WALLET",
+  "lpAmount": "1500000000",
+  "slippage": 0.5
+}
+```
+
+---
+
+## Lending & Vaults (Kamino)
+
+### List Markets
 ```bash
 GET /kamino/markets
 ```
 
-### 6. Kamino Reserves (Lending Pools)
-Get reserves with supply/borrow APY.
+### Get Reserves (with APY)
 ```bash
-GET /kamino/reserves
-GET /kamino/reserves?token=SOL  # Filter by token
+GET /kamino/reserves?token=SOL
 ```
 
-### 7. Kamino Vaults (Yield Strategies)
-Get yield vaults sorted by APY.
+### List Vaults
 ```bash
-GET /kamino/vaults
-GET /kamino/vaults?token=SOL&minApy=10  # Filter
+GET /kamino/vaults?token=USDC&minApy=10
 ```
 
-### 8. User Positions
-Get user's lending and vault positions with health status.
+### Get Positions
 ```bash
 GET /kamino/positions?wallet=WALLET_ADDRESS
 ```
-Response includes health indicator: 🟢 HEALTHY / 🟡 MODERATE / 🟠 WARNING / 🔴 CRITICAL
 
-### 9. Deposit to Lending ⚠️ Protected
-Deposit tokens to earn yield.
+Response includes health: 🟢 HEALTHY / 🟡 MODERATE / 🟠 WARNING / 🔴 CRITICAL
+
+### Deposit/Withdraw ⚠️ Protected
 ```bash
 POST /kamino/deposit
 {
   "wallet": "WALLET_ADDRESS",
   "reserve": "RESERVE_ADDRESS",
-  "amount": "AMOUNT_IN_SMALLEST_UNIT",
+  "amount": "1000000",
   "action": "deposit"  // or "withdraw"
 }
 ```
 
-### 10. Borrow from Lending ⚠️ Protected
-Borrow against collateral.
+### Borrow/Repay ⚠️ Protected
 ```bash
 POST /kamino/borrow
 {
   "wallet": "WALLET_ADDRESS",
   "reserve": "RESERVE_ADDRESS",
-  "amount": "AMOUNT_IN_SMALLEST_UNIT",
+  "amount": "1000000",
   "action": "borrow"  // or "repay"
 }
 ```
 
-⚠️ **LIQUIDATION WARNING**: Borrowing increases your LTV. If LTV exceeds liquidation threshold, collateral WILL be liquidated. Monitor positions regularly!
+⚠️ **LIQUIDATION WARNING**: Monitor LTV. If it exceeds threshold, collateral WILL be liquidated.
+
+---
+
+## Wallet Operations
+
+### Check Balance
+```bash
+GET /wallet/balance?wallet=WALLET_ADDRESS
+```
+
+### Send Tokens ⚠️ Protected
+```bash
+POST /wallet/send
+{
+  "to": "RECIPIENT_ADDRESS",
+  "amount": 0.5,
+  "mint": "TOKEN_MINT"  // Optional, omit for SOL
+}
+```
+
+### Get Receive Address ⚠️ Protected
+```bash
+GET /wallet/receive
+```
+
+### Transaction History ⚠️ Protected
+```bash
+GET /wallet/transactions?limit=10
+```
+
+---
+
+## Limit Orders
+
+### Create Order ⚠️ Protected
+```bash
+POST /orders
+{
+  "inputMint": "So111...",
+  "outputMint": "EPjF...",
+  "inAmount": "1000000000",
+  "outAmount": "150000000"
+}
+```
+
+### List Orders ⚠️ Protected
+```bash
+GET /orders?status=open
+```
+
+### Cancel Order ⚠️ Protected
+```bash
+DELETE /orders/:orderId
+```
+
+---
+
+## Price Alerts
+
+### Create Alert ⚠️ Protected
+```bash
+POST /alerts
+{
+  "tokenMint": "So111...",
+  "tokenSymbol": "SOL",
+  "condition": "above",
+  "targetPrice": 200,
+  "webhookUrl": "https://..."
+}
+```
+
+Conditions: `above`, `below`, `change_percent`
+
+### List Alerts ⚠️ Protected
+```bash
+GET /alerts?status=active
+```
+
+### Delete Alert ⚠️ Protected
+```bash
+DELETE /alerts/:alertId
+```
 
 ---
 
 ## Common Token Mints
 
-| Token | Mint |
-|-------|------|
+| Token | Mint Address |
+|-------|--------------|
 | SOL | So11111111111111111111111111111111111111112 |
 | USDC | EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v |
 | USDT | Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB |
@@ -353,182 +343,73 @@ POST /kamino/borrow
 
 ---
 
-## Workflow Examples
-
-### Swap SOL to USDC (Jupiter)
-1. `GET /jupiter/quote?inputMint=So11...&outputMint=EPjF...&amount=1000000000`
-2. `POST /jupiter/swap` with inputMint, outputMint, amount, userPublicKey
-3. Sign and send the returned transaction
-
-### Swap SOL to USDC (Raydium)
-1. `GET /raydium/quote?inputMint=So11...&outputMint=EPjF...&amount=1000000000`
-2. `POST /raydium/swap` with inputMint, outputMint, amount, userPublicKey
-3. Sign and send each returned transaction in order
-
-### Earn Yield on SOL
-1. `GET /kamino/reserves?token=SOL` - Find SOL reserve and APY
-2. `POST /kamino/deposit` with reserve address and amount
-3. Monitor with `GET /kamino/positions?wallet=...`
-
-### Find Best Yields
-1. `GET /kamino/vaults?minApy=20` - Vaults with >20% APY
-2. Review risks and choose vault
-3. Deposit via SDK (see response instructions)
-
-### Monitor Health
-1. `GET /kamino/positions?wallet=YOUR_WALLET`
-2. Check `healthStatus` field for each position
-3. If 🟠 or 🔴, consider repaying debt or adding collateral
-
----
-
 ## Error Handling
 
-All endpoints return consistent error format:
+All endpoints return:
 ```json
 {
   "success": false,
-  "error": "Description of what went wrong"
+  "error": "Description"
 }
 ```
 
-Common status codes:
-- `400` - Invalid parameters
-- `401` - Missing or invalid API key
-- `429` - Rate limit exceeded (wait 60s)
-- `500` - Server error
-- `504` - External API timeout (retry)
+Status codes:
+- `400` — Invalid parameters
+- `401` — Invalid API key
+- `429` — Rate limited (wait 60s)
+- `500` — Server error
+- `504` — External timeout (retry)
 
 ---
 
-## Limit Orders
+## Workflow Examples
 
-Set buy/sell orders that execute when price reaches your target.
-
-### Create Limit Order ⚠️ Protected
+### Swap SOL → USDC
 ```bash
-POST /orders
-{
-  "inputMint": "So11111111111111111111111111111111111111112",
-  "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-  "inAmount": "1000000000",
-  "outAmount": "150000000",
-  "expiry": 1735689600
-}
-```
-Response:
-```json
-{
-  "success": true,
-  "order": {
-    "id": "order_123456",
-    "inputMint": "So11...",
-    "outputMint": "EPjF...",
-    "inAmount": "1000000000",
-    "outAmount": "150000000",
-    "limitPrice": 0.15,
-    "status": "open",
-    "createdAt": "2026-02-04T00:00:00Z"
-  }
-}
+# 1. Get quote
+curl "https://solskill.ai/api/v1/jupiter/quote?inputMint=So11...&outputMint=EPjF...&amount=1000000000"
+
+# 2. Execute swap
+curl -X POST https://solskill.ai/api/v1/jupiter/swap \
+  -H "x-api-key: $API_KEY" \
+  -d '{"inputMint":"So11...","outputMint":"EPjF...","amount":"1000000000"}'
+
+# 3. Sign and send returned transaction
 ```
 
-### List Orders ⚠️ Protected
+### Earn Yield on USDC
 ```bash
-GET /orders
-GET /orders?status=open
-GET /orders?status=filled
-GET /orders?status=cancelled
+# 1. Find best vault
+curl "https://solskill.ai/api/v1/kamino/vaults?token=USDC&minApy=10"
+
+# 2. Deposit
+curl -X POST https://solskill.ai/api/v1/kamino/deposit \
+  -H "x-api-key: $API_KEY" \
+  -d '{"reserve":"...","amount":"1000000","action":"deposit"}'
 ```
 
-### Get Specific Order ⚠️ Protected
+### Provide Liquidity
 ```bash
-GET /orders/order_123456
-```
+# 1. Find pool
+curl "https://solskill.ai/api/v1/raydium/pools?token=SOL&minApy=10"
 
-### Cancel Order ⚠️ Protected
-```bash
-DELETE /orders/order_123456
-```
-
-### Cancel All Orders ⚠️ Protected
-```bash
-DELETE /orders
+# 2. Add liquidity
+curl -X POST https://solskill.ai/api/v1/raydium/pools/add-liquidity \
+  -H "x-api-key: $API_KEY" \
+  -d '{"poolId":"...","amountA":"1000000000"}'
 ```
 
 ---
 
-## Price Alerts
+## Rate Limits
 
-Get notified when tokens hit your target price.
-
-### Create Alert ⚠️ Protected
-```bash
-POST /alerts
-{
-  "tokenMint": "So11111111111111111111111111111111111111112",
-  "tokenSymbol": "SOL",
-  "condition": "above",
-  "targetPrice": 200,
-  "webhookUrl": "https://your-webhook.com/notify",
-  "repeat": false
-}
-```
-Conditions:
-- `above` - Triggers when price goes above targetPrice
-- `below` - Triggers when price goes below targetPrice
-- `change_percent` - Triggers on % change (use `changePercent` and `timeframe`)
-
-Response:
-```json
-{
-  "success": true,
-  "alert": {
-    "id": "alert_789xyz",
-    "tokenMint": "So11...",
-    "tokenSymbol": "SOL",
-    "condition": "above",
-    "targetPrice": 200,
-    "status": "active",
-    "createdAt": "2026-02-04T00:00:00Z"
-  }
-}
-```
-
-### List Alerts ⚠️ Protected
-```bash
-GET /alerts
-GET /alerts?status=active
-GET /alerts?status=triggered
-```
-
-### Get Specific Alert ⚠️ Protected
-```bash
-GET /alerts/alert_789xyz
-```
-
-### Update Alert ⚠️ Protected
-```bash
-PATCH /alerts/alert_789xyz
-{
-  "status": "disabled",
-  "targetPrice": 250
-}
-```
-
-### Delete Alert ⚠️ Protected
-```bash
-DELETE /alerts/alert_789xyz
-```
-
-### Delete All Alerts ⚠️ Protected
-```bash
-DELETE /alerts
-```
+- 100 requests/minute per API key
+- Rate limit headers in responses
+- 429 = wait 60 seconds
 
 ---
 
 ## Support
 
 - Docs: https://solskill.ai
-- GitHub: https://github.com/caiovicentino/solskill
+- Dashboard: https://solskill.ai/dashboard

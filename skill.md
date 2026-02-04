@@ -1,74 +1,120 @@
-# ClawFi Skill Specification
+---
+name: solskill
+version: 1.0.0
+description: DeFi Skills for AI Agents on Solana - Jupiter swaps, Kamino lending & vaults, Raydium liquidity
+homepage: https://solskill.ai
+metadata: {"category": "defi", "chain": "solana", "api_base": "https://solskill.ai/api/v1"}
+---
 
-ClawFi provides DeFi capabilities for AI agents on Solana.
+# SolSkill — DeFi Skills for AI Agents
+
+You have access to DeFi operations on Solana via the SolSkill API.
 
 ## Base URL
 ```
-https://clawfi.xyz/api/v1
+https://solskill.ai/api/v1
 ```
 
 ## Authentication
-Protected endpoints require an API key via header:
+
+Protected endpoints require an API key:
+
+```bash
+# Option 1: x-api-key header (recommended)
+curl -H "x-api-key: solskill_your_api_key_here" ...
+
+# Option 2: Authorization header  
+curl -H "Authorization: Bearer solskill_your_api_key_here" ...
 ```
-x-api-key: clawfi_YOUR_API_KEY
-```
-Or:
-```
-Authorization: Bearer clawfi_YOUR_API_KEY
-```
+
+### Public Endpoints (no auth)
+- `GET /jupiter/tokens` — List tokens
+- `GET /jupiter/quote` — Swap quote
+- `GET /raydium/quote` — Raydium quote
+- `GET /raydium/pools` — List pools
+- `GET /kamino/markets` — Lending markets
+- `GET /kamino/reserves` — Reserves with APY
+- `GET /kamino/vaults` — Yield vaults
+- `GET /kamino/positions` — User positions
+- `GET /wallet/balance` — Wallet balances
+
+### Protected Endpoints (API key required)
+- `POST /jupiter/swap` — Execute swap
+- `POST /raydium/swap` — Raydium swap
+- `POST /raydium/pools/add-liquidity` — Add liquidity
+- `POST /raydium/pools/remove-liquidity` — Remove liquidity
+- `POST /kamino/deposit` — Deposit/withdraw
+- `POST /kamino/borrow` — Borrow/repay
+- `POST /wallet/send` — Send tokens
+- `GET /wallet/receive` — Deposit address
+- `GET /wallet/transactions` — Transaction history
+- `POST /orders` — Limit orders
+- `POST /alerts` — Price alerts
 
 ---
 
-## Agent Management
+## Quick Start: Agent Self-Registration
 
-### Register Agent
-```
-POST /agents/register
-```
-Create a new agent with embedded wallet.
-
-**Body:**
-```json
-{
-  "name": "my-agent",
-  "description": "Optional description"
-}
+### 1. Register Your Agent
+```bash
+curl -X POST https://solskill.ai/api/v1/agents/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "YourAgentName"}'
 ```
 
-**Response:**
+Response:
 ```json
 {
   "success": true,
-  "agentId": "agent_...",
-  "apiKey": "clawfi_...",
-  "claimCode": "claim_...",
-  "status": "pending_claim"
+  "agent_id": "agent_abc123",
+  "claim_url": "https://solskill.ai/claim/abc123xyz",
+  "expires_in": 3600,
+  "message": "Have your human visit claim_url to authorize and receive API key"
 }
+```
+
+### 2. Human Claims the Agent
+1. Human visits `claim_url` in browser
+2. Human connects wallet and approves
+3. Page displays API key
+4. Agent stores credentials
+
+### 3. Store Credentials
+```bash
+mkdir -p ~/.config/solskill
+cat > ~/.config/solskill/credentials.json << 'EOF'
+{
+  "api_key": "solskill_your_api_key_here",
+  "agent_id": "agent_abc123"
+}
+EOF
+chmod 600 ~/.config/solskill/credentials.json
+```
+
+### 4. Use in Requests
+```bash
+API_KEY=$(jq -r .api_key ~/.config/solskill/credentials.json)
+curl -H "x-api-key: $API_KEY" https://solskill.ai/api/v1/...
 ```
 
 ---
 
-## Jupiter (Token Swaps)
+## Token Swaps (Jupiter)
 
 ### List Tokens
-```
+```bash
 GET /jupiter/tokens
+GET /jupiter/tokens?all=true  # All verified tokens
 ```
-Get available tokens for swapping.
 
 ### Get Quote
-```
-GET /jupiter/quote?inputMint=...&outputMint=...&amount=...&slippageBps=50
+```bash
+GET /jupiter/quote?inputMint=SOL_MINT&outputMint=USDC_MINT&amount=LAMPORTS&slippageBps=50
 ```
 
-### Execute Swap
-```
+### Execute Swap ⚠️ Protected
+```bash
 POST /jupiter/swap
-```
-**Auth Required**
-
-**Body:**
-```json
 {
   "inputMint": "So11111111111111111111111111111111111111112",
   "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
@@ -80,245 +126,69 @@ POST /jupiter/swap
 
 ---
 
-## Kamino Finance (Lending)
+## Token Swaps (Raydium)
 
-### List Markets
-```
-GET /kamino/markets
-```
-
-### Get Reserves
-```
-GET /kamino/reserves?market=MARKET_ADDRESS
+### Get Quote
+```bash
+GET /raydium/quote?inputMint=SOL_MINT&outputMint=USDC_MINT&amount=LAMPORTS
 ```
 
-### List Vaults
-```
-GET /kamino/vaults?token=USDC&minApy=5
-```
-
-### Deposit/Withdraw
-```
-POST /kamino/deposit
-```
-**Auth Required**
-
-**Body:**
-```json
+### Execute Swap ⚠️ Protected
+```bash
+POST /raydium/swap
 {
-  "wallet": "YOUR_WALLET",
-  "reserve": "RESERVE_ADDRESS",
-  "amount": "1000000",
-  "market": "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF",
-  "action": "deposit"
-}
-```
-
-### Borrow/Repay
-```
-POST /kamino/borrow
-```
-**Auth Required**
-
-**Body:**
-```json
-{
-  "wallet": "YOUR_WALLET",
-  "reserve": "RESERVE_ADDRESS",
-  "amount": "1000000",
-  "action": "borrow"
+  "inputMint": "So11111111111111111111111111111111111111112",
+  "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount": "1000000000",
+  "userPublicKey": "YOUR_WALLET",
+  "slippageBps": 50
 }
 ```
 
 ---
 
-## Raydium (Liquidity Pools)
+## Liquidity Pools (Raydium)
 
 ### List Pools
+```bash
+GET /raydium/pools?token=SOL&minTvl=1000000&minApy=10
 ```
-GET /raydium/pools
-```
-List available liquidity pools with TVL, APY, and token info.
 
-**Query Parameters:**
-| Param | Type | Description |
-|-------|------|-------------|
-| `token` | string | Filter by token symbol (e.g., SOL, USDC) |
-| `minTvl` | number | Minimum TVL in USD |
-| `minApy` | number | Minimum APY percentage |
-| `type` | string | Pool type: all, standard, concentrated |
-| `page` | number | Page number (default: 1) |
-| `pageSize` | number | Results per page (max: 100) |
-
-**Response:**
+Response:
 ```json
 {
   "success": true,
-  "pools": [
-    {
-      "id": "POOL_ADDRESS",
-      "type": "standard",
-      "tokenA": {
-        "symbol": "SOL",
-        "address": "So111...",
-        "decimals": 9
-      },
-      "tokenB": {
-        "symbol": "USDC",
-        "address": "EPjFW...",
-        "decimals": 6
-      },
-      "tvl": 15000000,
-      "apr24h": 12.5,
-      "volume24h": 5000000,
-      "feeRate": 0.0025
-    }
-  ],
-  "count": 50
+  "pools": [{
+    "id": "POOL_ADDRESS",
+    "type": "standard",
+    "tokenA": {"symbol": "SOL", "address": "..."},
+    "tokenB": {"symbol": "USDC", "address": "..."},
+    "tvl": 15000000,
+    "apr24h": 12.5,
+    "volume24h": 5000000
+  }]
 }
 ```
 
 ### Get Pool Details
-```
+```bash
 GET /raydium/pools/:poolId
 ```
-Get detailed information for a specific pool.
 
-**Response:**
-```json
-{
-  "success": true,
-  "pool": {
-    "id": "POOL_ADDRESS",
-    "type": "standard",
-    "mintA": {
-      "address": "So111...",
-      "symbol": "SOL",
-      "decimals": 9
-    },
-    "mintB": {
-      "address": "EPjFW...",
-      "symbol": "USDC",
-      "decimals": 6
-    },
-    "mintAmountA": "100000",
-    "mintAmountB": "15000000",
-    "price": 150,
-    "tvl": 15000000,
-    "apr": {
-      "day": 12.5,
-      "week": 11.2,
-      "month": 10.8
-    },
-    "feeApr": {
-      "day": 8.5,
-      "week": 7.8,
-      "month": 7.2
-    },
-    "rewardApr": {
-      "day": 4.0,
-      "week": 3.4,
-      "month": 3.6
-    },
-    "feeRate": 0.0025,
-    "lpMint": {
-      "address": "LP_MINT_ADDRESS",
-      "decimals": 9
-    },
-    "lpPrice": 1.5,
-    "lpAmount": "10000000",
-    "farmCount": 2
-  }
-}
-```
-
-### Add Liquidity
-```
+### Add Liquidity ⚠️ Protected
+```bash
 POST /raydium/pools/add-liquidity
-```
-**Auth Required**
-
-Add liquidity to a Raydium pool.
-
-**Body:**
-```json
 {
   "poolId": "POOL_ADDRESS",
   "wallet": "YOUR_WALLET",
   "amountA": "1000000000",
-  "amountB": "150000000",
-  "slippage": 0.5,
-  "fixedSide": "a"
+  "slippage": 0.5
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `poolId` | string | Yes | Pool address |
-| `wallet` | string | Yes | User wallet address |
-| `amountA` | string | One required | Amount of token A (raw units) |
-| `amountB` | string | One required | Amount of token B (raw units) |
-| `slippage` | number | No | Slippage tolerance % (default: 0.5) |
-| `fixedSide` | string | No | Which side is fixed: "a" or "b" |
-
-**Response (Transaction Ready):**
-```json
-{
-  "success": true,
-  "transaction": "BASE64_ENCODED_TX",
-  "estimatedLpTokens": "1500000000",
-  "computed": {
-    "amountA": "1000000000",
-    "amountB": "150000000",
-    "minAmountA": "995000000",
-    "minAmountB": "149250000",
-    "lpAmount": "1500000000"
-  },
-  "pool": {
-    "id": "POOL_ADDRESS",
-    "tokenA": "SOL",
-    "tokenB": "USDC"
-  }
-}
-```
-
-**Response (Manual Build Required):**
-```json
-{
-  "success": true,
-  "requiresManualBuild": true,
-  "params": {
-    "poolId": "...",
-    "wallet": "...",
-    "amountA": 1.0,
-    "amountB": 150.0,
-    "slippage": 0.5
-  },
-  "pool": {
-    "tokenA": { "symbol": "SOL", "address": "...", "decimals": 9 },
-    "tokenB": { "symbol": "USDC", "address": "...", "decimals": 6 },
-    "lpMint": "...",
-    "programId": "..."
-  },
-  "instructions": {
-    "sdk": "@raydium-io/raydium-sdk-v2",
-    "steps": ["..."],
-    "example": "...",
-    "docs": "https://docs.raydium.io/raydium/traders/sdks"
-  }
-}
-```
-
-### Remove Liquidity
-```
+### Remove Liquidity ⚠️ Protected
+```bash
 POST /raydium/pools/remove-liquidity
-```
-**Auth Required**
-
-Remove liquidity from a Raydium pool.
-
-**Body:**
-```json
 {
   "poolId": "POOL_ADDRESS",
   "wallet": "YOUR_WALLET",
@@ -327,143 +197,219 @@ Remove liquidity from a Raydium pool.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `poolId` | string | Yes | Pool address |
-| `wallet` | string | Yes | User wallet address |
-| `lpAmount` | string | Yes | Amount of LP tokens to burn |
-| `slippage` | number | No | Slippage tolerance % (default: 0.5) |
+---
 
-**Response (Transaction Ready):**
-```json
+## Lending & Vaults (Kamino)
+
+### List Markets
+```bash
+GET /kamino/markets
+```
+
+### Get Reserves (with APY)
+```bash
+GET /kamino/reserves?token=SOL
+```
+
+### List Vaults
+```bash
+GET /kamino/vaults?token=USDC&minApy=10
+```
+
+### Get Positions
+```bash
+GET /kamino/positions?wallet=WALLET_ADDRESS
+```
+
+Response includes health: 🟢 HEALTHY / 🟡 MODERATE / 🟠 WARNING / 🔴 CRITICAL
+
+### Deposit/Withdraw ⚠️ Protected
+```bash
+POST /kamino/deposit
 {
-  "success": true,
-  "transaction": "BASE64_ENCODED_TX",
-  "estimated": {
-    "amountA": "1000000000",
-    "amountB": "150000000",
-    "minAmountA": "995000000",
-    "minAmountB": "149250000"
-  },
-  "pool": {
-    "id": "POOL_ADDRESS",
-    "tokenA": "SOL",
-    "tokenB": "USDC"
-  }
+  "wallet": "WALLET_ADDRESS",
+  "reserve": "RESERVE_ADDRESS",
+  "amount": "1000000",
+  "action": "deposit"  // or "withdraw"
 }
 ```
 
-**Response (Manual Build Required):**
-```json
+### Borrow/Repay ⚠️ Protected
+```bash
+POST /kamino/borrow
 {
-  "success": true,
-  "requiresManualBuild": true,
-  "params": {
-    "poolId": "...",
-    "wallet": "...",
-    "lpAmount": "1500000000",
-    "slippage": 0.5
-  },
-  "estimated": {
-    "amountA": 1.0,
-    "amountB": 150.0,
-    "minAmountA": 0.995,
-    "minAmountB": 149.25,
-    "lpShare": 0.001
-  },
-  "pool": {
-    "tokenA": { "symbol": "SOL", "address": "...", "decimals": 9 },
-    "tokenB": { "symbol": "USDC", "address": "...", "decimals": 6 },
-    "lpMint": "...",
-    "tvl": 15000000,
-    "totalLpSupply": "1500000000000"
-  },
-  "instructions": {
-    "sdk": "@raydium-io/raydium-sdk-v2",
-    "steps": ["..."],
-    "example": "...",
-    "docs": "https://docs.raydium.io/raydium/traders/sdks"
-  }
+  "wallet": "WALLET_ADDRESS",
+  "reserve": "RESERVE_ADDRESS",
+  "amount": "1000000",
+  "action": "borrow"  // or "repay"
 }
+```
+
+⚠️ **LIQUIDATION WARNING**: Monitor LTV. If it exceeds threshold, collateral WILL be liquidated.
+
+---
+
+## Wallet Operations
+
+### Check Balance
+```bash
+GET /wallet/balance?wallet=WALLET_ADDRESS
+```
+
+### Send Tokens ⚠️ Protected
+```bash
+POST /wallet/send
+{
+  "to": "RECIPIENT_ADDRESS",
+  "amount": 0.5,
+  "mint": "TOKEN_MINT"  // Optional, omit for SOL
+}
+```
+
+### Get Receive Address ⚠️ Protected
+```bash
+GET /wallet/receive
+```
+
+### Transaction History ⚠️ Protected
+```bash
+GET /wallet/transactions?limit=10
 ```
 
 ---
 
-## Error Responses
+## Limit Orders
 
-All endpoints return errors in this format:
+### Create Order ⚠️ Protected
+```bash
+POST /orders
+{
+  "inputMint": "So111...",
+  "outputMint": "EPjF...",
+  "inAmount": "1000000000",
+  "outAmount": "150000000"
+}
+```
+
+### List Orders ⚠️ Protected
+```bash
+GET /orders?status=open
+```
+
+### Cancel Order ⚠️ Protected
+```bash
+DELETE /orders/:orderId
+```
+
+---
+
+## Price Alerts
+
+### Create Alert ⚠️ Protected
+```bash
+POST /alerts
+{
+  "tokenMint": "So111...",
+  "tokenSymbol": "SOL",
+  "condition": "above",
+  "targetPrice": 200,
+  "webhookUrl": "https://..."
+}
+```
+
+Conditions: `above`, `below`, `change_percent`
+
+### List Alerts ⚠️ Protected
+```bash
+GET /alerts?status=active
+```
+
+### Delete Alert ⚠️ Protected
+```bash
+DELETE /alerts/:alertId
+```
+
+---
+
+## Common Token Mints
+
+| Token | Mint Address |
+|-------|--------------|
+| SOL | So11111111111111111111111111111111111111112 |
+| USDC | EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v |
+| USDT | Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB |
+| JUP | JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN |
+| KMNO | KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS |
+
+---
+
+## Error Handling
+
+All endpoints return:
 ```json
 {
   "success": false,
-  "error": "Error message description"
+  "error": "Description"
 }
 ```
 
-**Common HTTP Status Codes:**
-| Code | Description |
-|------|-------------|
-| 400 | Bad Request - Invalid parameters |
-| 401 | Unauthorized - Invalid or missing API key |
-| 404 | Not Found - Resource doesn't exist |
-| 500 | Server Error - Internal error |
-| 504 | Timeout - External API timeout |
+Status codes:
+- `400` — Invalid parameters
+- `401` — Invalid API key
+- `429` — Rate limited (wait 60s)
+- `500` — Server error
+- `504` — External timeout (retry)
 
 ---
 
-## Example: Provide Liquidity Workflow
+## Workflow Examples
 
-```javascript
-// 1. Find a good pool
-const pools = await fetch('/api/v1/raydium/pools?token=SOL&minTvl=1000000')
-  .then(r => r.json());
+### Swap SOL → USDC
+```bash
+# 1. Get quote
+curl "https://solskill.ai/api/v1/jupiter/quote?inputMint=So11...&outputMint=EPjF...&amount=1000000000"
 
-const bestPool = pools.pools[0];
-console.log(`Pool: ${bestPool.tokenA.symbol}/${bestPool.tokenB.symbol}`);
-console.log(`APR: ${bestPool.apr24h}%, TVL: $${bestPool.tvl}`);
+# 2. Execute swap
+curl -X POST https://solskill.ai/api/v1/jupiter/swap \
+  -H "x-api-key: $API_KEY" \
+  -d '{"inputMint":"So11...","outputMint":"EPjF...","amount":"1000000000"}'
 
-// 2. Get pool details
-const poolDetails = await fetch(`/api/v1/raydium/pools/${bestPool.id}`)
-  .then(r => r.json());
+# 3. Sign and send returned transaction
+```
 
-// 3. Add liquidity
-const addLiqRes = await fetch('/api/v1/raydium/pools/add-liquidity', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': 'clawfi_YOUR_KEY'
-  },
-  body: JSON.stringify({
-    poolId: bestPool.id,
-    wallet: 'YOUR_WALLET',
-    amountA: '1000000000', // 1 SOL
-    slippage: 0.5
-  })
-}).then(r => r.json());
+### Earn Yield on USDC
+```bash
+# 1. Find best vault
+curl "https://solskill.ai/api/v1/kamino/vaults?token=USDC&minApy=10"
 
-// 4. Sign and send the transaction
-// (use @solana/web3.js to deserialize, sign, and send)
+# 2. Deposit
+curl -X POST https://solskill.ai/api/v1/kamino/deposit \
+  -H "x-api-key: $API_KEY" \
+  -d '{"reserve":"...","amount":"1000000","action":"deposit"}'
+```
 
-// 5. Later, remove liquidity
-const removeLiqRes = await fetch('/api/v1/raydium/pools/remove-liquidity', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': 'clawfi_YOUR_KEY'
-  },
-  body: JSON.stringify({
-    poolId: bestPool.id,
-    wallet: 'YOUR_WALLET',
-    lpAmount: addLiqRes.estimatedLpTokens,
-    slippage: 0.5
-  })
-}).then(r => r.json());
+### Provide Liquidity
+```bash
+# 1. Find pool
+curl "https://solskill.ai/api/v1/raydium/pools?token=SOL&minApy=10"
+
+# 2. Add liquidity
+curl -X POST https://solskill.ai/api/v1/raydium/pools/add-liquidity \
+  -H "x-api-key: $API_KEY" \
+  -d '{"poolId":"...","amountA":"1000000000"}'
 ```
 
 ---
 
-## Notes
+## Rate Limits
 
-- All amounts are in raw token units (lamports for SOL, smallest unit for SPL tokens)
-- Slippage is specified as a percentage (0.5 = 0.5%)
-- Transaction responses are base64-encoded versioned transactions
-- When `requiresManualBuild: true`, use the provided SDK instructions to build locally
+- 100 requests/minute per API key
+- Rate limit headers in responses
+- 429 = wait 60 seconds
+
+---
+
+## Support
+
+- Docs: https://solskill.ai
+- Dashboard: https://solskill.ai/dashboard
