@@ -122,7 +122,10 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setShowRegister(!showRegister)}
+              onClick={() => {
+                console.log('Button clicked, showRegister:', showRegister);
+                setShowRegister(!showRegister);
+              }}
               className={`px-4 py-2 rounded-lg transition font-medium ${
                 showRegister 
                   ? 'bg-[#14F195]/20 text-[#14F195] border border-[#14F195]/30' 
