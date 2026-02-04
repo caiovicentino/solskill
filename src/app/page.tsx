@@ -26,6 +26,7 @@ import RegisterFlow from '@/components/RegisterFlow';
 import LiveSwapDemo from '@/components/LiveSwapDemo';
 import PriceTicker from '@/components/PriceTicker';
 import LiveStats from '@/components/LiveStats';
+import ActivityFeed from '@/components/ActivityFeed';
 
 export default function Home() {
   const { ready, authenticated, user, login, logout } = usePrivy();
@@ -223,7 +224,14 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-2">Live Platform Stats</h2>
             <p className="text-gray-400 text-sm">Real-time data from SolSkill network</p>
           </div>
-          <LiveStats />
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <LiveStats />
+            </div>
+            <div>
+              <ActivityFeed maxItems={5} />
+            </div>
+          </div>
         </section>
 
         {/* Features Section */}
