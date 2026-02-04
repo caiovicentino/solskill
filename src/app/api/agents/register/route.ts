@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate secure API key
-    const apiKey = `clawfi_${crypto.randomBytes(32).toString('hex')}`;
+    const apiKey = `solskill_${crypto.randomBytes(32).toString('hex')}`;
 
     // Create agent
     const agent: Agent = {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         apiKey: agent.apiKey,
         createdAt: agent.createdAt,
       },
-      skillFile: 'https://clawfi.xyz/skill.md',
+      skillFile: 'https://solskill.ai/skill.md',
       important: '⚠️ Save your API key securely. It cannot be recovered if lost.',
     });
   } catch (error) {
@@ -140,11 +140,11 @@ async function verifyTweet(
           };
         }
 
-        // Check if tweet mentions ClawFi
-        if (!tweetText.toLowerCase().includes('clawfi')) {
+        // Check if tweet mentions SolSkill
+        if (!tweetText.toLowerCase().includes('solskill')) {
           return { 
             success: false, 
-            error: 'Tweet must mention @ClawFi_' 
+            error: 'Tweet must mention @SolSkill_' 
           };
         }
 
@@ -161,7 +161,7 @@ async function verifyTweet(
   // Method 2: Syndica or alternative verification service
   // For hackathon without Twitter API, use manual verification flag
   if (process.env.ALLOW_MANUAL_VERIFICATION === 'true') {
-    console.warn(`[ClawFi] Manual verification mode - tweet ${tweetId} accepted without API check`);
+    console.warn(`[SolSkill] Manual verification mode - tweet ${tweetId} accepted without API check`);
     return { 
       success: true,
       twitterUsername: undefined,

@@ -11,6 +11,9 @@ importers:
       '@jup-ag/api':
         specifier: ^6.0.48
         version: 6.0.48
+      '@lottiefiles/react-lottie-player':
+        specifier: ^3.6.0
+        version: 3.6.0(react@19.2.3)
       '@privy-io/react-auth':
         specifier: ^3.13.1
         version: 3.13.1(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana/kit@5.5.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.20(react@19.2.3))(@types/react@19.2.10)(@upstash/redis@1.36.2)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.3))(utf-8-validate@5.0.10)(zod@4.3.6)
@@ -29,6 +32,9 @@ importers:
       '@upstash/redis':
         specifier: ^1.36.2
         version: 1.36.2
+      lottie-react:
+        specifier: ^2.4.1
+        version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next:
         specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -497,6 +503,11 @@ packages:
 
   '@lit/reactive-element@2.1.2':
     resolution: {integrity: sha512-pbCDiVMnne1lYUIaYNN5wrwQXDtHaYtg7YEFPeW+hws6U47WeFvISGUWekPGKWOP1ygrs0ef0o1VJMk1exos5A==}
+
+  '@lottiefiles/react-lottie-player@3.6.0':
+    resolution: {integrity: sha512-WK5TriLJT93VF3w4IjSVyveiedraZCnDhKzCPhpbeLgQeMi6zufxa3dXNc4HmAFRXq+LULPAy+Idv1rAfkReMA==}
+    peerDependencies:
+      react: 16 - 19
 
   '@marsidev/react-turnstile@1.4.1':
     resolution: {integrity: sha512-1jE0IjvB8z+q1NFRs3149gXzXwIzXQWqQjn9fmAr13BiE3RYLWck5Me6flHYE90shW5L12Jkm6R1peS1OnA9oQ==}
@@ -3196,6 +3207,15 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
+  lottie-react@2.4.1:
+    resolution: {integrity: sha512-LQrH7jlkigIIv++wIyrOYFLHSKQpEY4zehPicL9bQsrt1rnoKRYCYgpCUe5maqylNtacy58/sQDZTkwMcTRxZw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  lottie-web@5.13.0:
+    resolution: {integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==}
+
   lru-cache@11.2.5:
     resolution: {integrity: sha512-vFrFJkWtJvJnD5hg+hJvVE8Lh/TcMzKnTgCWmtBipwI5yLX/iX+5UB2tfuyODF5E7k9xEzMdYgGqaSb1c0c5Yw==}
     engines: {node: 20 || >=22}
@@ -4962,6 +4982,11 @@ snapshots:
   '@lit/reactive-element@2.1.2':
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.5.1
+
+  '@lottiefiles/react-lottie-player@3.6.0(react@19.2.3)':
+    dependencies:
+      lottie-web: 5.13.0
+      react: 19.2.3
 
   '@marsidev/react-turnstile@1.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
@@ -9409,6 +9434,14 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  lottie-react@2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      lottie-web: 5.13.0
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  lottie-web@5.13.0: {}
 
   lru-cache@11.2.5: {}
 

@@ -6,9 +6,9 @@ import Providers from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ClawFi - DeFi Skills for AI Agents',
+  title: 'SolSkill - DeFi Skills for AI Agents',
   description: 'Give any AI agent secure, self-custodial DeFi powers on Solana. Jupiter swaps, Kamino vaults.',
-  keywords: ['AI', 'Agent', 'Solana', 'DeFi', 'Jupiter', 'Kamino', 'ClawFi'],
+  keywords: ['AI', 'Agent', 'Solana', 'DeFi', 'Jupiter', 'Kamino', 'SolSkill'],
 };
 
 export default function RootLayout({

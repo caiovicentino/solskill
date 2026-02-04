@@ -77,14 +77,14 @@ export default async function proxy(request: NextRequest) {
         { 
           success: false, 
           error: 'API key required. Include x-api-key header or Authorization: Bearer <key>',
-          docs: 'https://clawfi.xyz/skill.md'
+          docs: 'https://solskill.ai/skill.md'
         },
         { status: 401 }
       );
     }
     
     // Validate API key format
-    if (!apiKey.startsWith('clawfi_') || apiKey.length < 40) {
+    if (!apiKey.startsWith('solskill_') || apiKey.length < 40) {
       return NextResponse.json(
         { success: false, error: 'Invalid API key format' },
         { status: 401 }
