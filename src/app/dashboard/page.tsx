@@ -17,6 +17,8 @@ import {
   PortfolioIcon,
 } from '@/components/AnimatedIcons';
 import { LoadingDots, AnimatedGradient } from '@/components/animations';
+import PortfolioChart from '@/components/dashboard/PortfolioChart';
+import QuickActions from '@/components/dashboard/QuickActions';
 
 interface PortfolioData {
   wallet: string;
@@ -271,7 +273,19 @@ function OverviewTab({ portfolio }: { portfolio: PortfolioData | null }) {
   if (!portfolio) return null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-6">
+      {/* Top Row - Chart and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <PortfolioChart totalValue={portfolio.totalValueUsd} />
+        </div>
+        <div>
+          <QuickActions />
+        </div>
+      </div>
+
+      {/* Bottom Row - Protocol Distribution and Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Protocol Distribution */}
       <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-800">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -344,6 +358,7 @@ function OverviewTab({ portfolio }: { portfolio: PortfolioData | null }) {
             </span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
