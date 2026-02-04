@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   SuccessCheck,
   LoadingDots,
@@ -18,6 +19,7 @@ interface RegisterFlowProps {
 }
 
 export default function RegisterFlow({ onComplete }: RegisterFlowProps) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>('name');
   const [agentName, setAgentName] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -297,18 +299,26 @@ https://solskill.ai`;
               </code>
             </p>
 
-            <button 
-              onClick={() => {
-                setStep('name');
-                setAgentName('');
-                setVerificationCode('');
-                setTweetUrl('');
-                setApiKey('');
-              }}
-              className="mt-6 text-[#14F195] text-sm hover:underline"
-            >
-              Register another agent
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button 
+                onClick={() => router.push('/dashboard')}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#14F195] to-[#0fd884] hover:opacity-90 text-black font-bold rounded-xl transition"
+              >
+                Go to Dashboard →
+              </button>
+              <button 
+                onClick={() => {
+                  setStep('name');
+                  setAgentName('');
+                  setVerificationCode('');
+                  setTweetUrl('');
+                  setApiKey('');
+                }}
+                className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition"
+              >
+                Register another agent
+              </button>
+            </div>
           </div>
         )}
       </div>

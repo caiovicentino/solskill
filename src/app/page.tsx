@@ -72,12 +72,20 @@ export default function Home() {
               Skill File
             </a>
             {authenticated ? (
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-gray-800/80 hover:bg-gray-700 rounded-lg transition border border-gray-700"
-              >
-                Logout
-              </button>
+              <>
+                <a
+                  href="/dashboard"
+                  className="px-4 py-2 bg-[#14F195]/20 hover:bg-[#14F195]/30 rounded-lg transition border border-[#14F195]/30 text-[#14F195]"
+                >
+                  Dashboard
+                </a>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 bg-gray-800/80 hover:bg-gray-700 rounded-lg transition border border-gray-700"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <button
                 onClick={login}
@@ -112,10 +120,10 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-4">
                 <button
-                  onClick={() => setShowRegister(true)}
+                  onClick={() => authenticated ? setShowRegister(true) : login()}
                   className="group px-8 py-4 bg-gradient-to-r from-[#14F195] to-[#0fd884] hover:opacity-90 text-black font-bold text-lg rounded-xl transition transform hover:scale-105 shadow-xl shadow-[#14F195]/30 flex items-center gap-3"
                 >
-                  Register Agent
+                  {authenticated ? 'Register Agent' : 'Get Started'}
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
                 <a
