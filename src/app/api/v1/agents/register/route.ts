@@ -1,31 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { db, Agent } from '@/lib/db';
+import { randomUUID, randomBytes } from 'crypto';
 
-// Word list for verification codes (ocean/reef themed)
-const VERIFICATION_WORDS = ['claw', 'reef', 'wave', 'tide', 'shell', 'coral'];
-
-// Generate random alphanumeric string
-function randomChars(length: number): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No confusing chars (0/O, 1/I)
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-// Generate verification code: word-XXXX (e.g., "claw-X4B2")
-function generateVerificationCode(): string {
-  const word = VERIFICATION_WORDS[Math.floor(Math.random() * VERIFICATION_WORDS.length)];
-  const code = randomChars(4);
-  return `${word}-${code}`;
-}
-
-// Generate short claim code
-function generateClaimCode(): string {
-  return `solskill_claim_${randomChars(8)}`;
-}
+// In-memory store for hackathon (resets on cold start, but that's OK for demo)
+const agentsStore = new Map<string, any>();
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,51 +24,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate description if provided
-    if (description && (typeof description !== 'string' || description.length > 500)) {
-      return NextResponse.json(
-        { success: false, error: 'Description must be 500 characters or less' },
-        { status: 400 }
-      );
-    }
-
     // Generate credentials
-    const apiKey = `solskill_${randomUUID()}`;
-    const claimCode = generateClaimCode();
-    const verificationCode = generateVerificationCode();
+    const apiKey = `solskill_${randomBytes(24).toString('hex')}`;
     const agentId = randomUUID();
 
-    // Build claim URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://solskill.ai';
-    const claimUrl = `${baseUrl}/claim/${claimCode}`;
-
-    // Create agent record with pending status
-    const agent: Agent = {
+    // Create agent record
+    const agent = {
       id: agentId,
       name: name.trim(),
-      wallet: '', // Will be set during claim
-      userId: '', // Will be set during claim
+      description: description?.trim(),
       apiKey,
-      verified: false, // pending_claim status
+      verified: true, // Auto-verified for hackathon
       createdAt: new Date().toISOString(),
       requestCount: 0,
-      // Extended fields for registration flow
-      ...(description && { description: description.trim() }),
-      // Store claim/verification codes (would be in separate table in production)
     };
 
-    // Store in DB
-    db.createAgent(agent);
+    // Store in memory
+    agentsStore.set(apiKey, agent);
 
-    // Store claim code mapping (in production, this would be a separate table)
-    // For hackathon, we'll add it to a claims file
-    storeClaimCode(claimCode, {
-      agentId,
-      apiKey,
-      verificationCode,
-      createdAt: new Date().toISOString(),
-      status: 'pending_claim',
-    });
+    console.log(`✅ Agent registered: ${name} - ${agentId}`);
 
     return NextResponse.json({
       success: true,
@@ -99,9 +50,6 @@ export async function POST(req: NextRequest) {
         id: agentId,
         name: name.trim(),
         api_key: apiKey,
-        claim_url: claimUrl,
-        claim_code: claimCode,
-        verification_code: verificationCode,
       },
       important: '⚠️ SAVE YOUR API KEY! It will not be shown again.',
     });
@@ -112,35 +60,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Store claim code mapping (hackathon simple storage)
-function storeClaimCode(claimCode: string, data: {
-  agentId: string;
-  apiKey: string;
-  verificationCode: string;
-  createdAt: string;
-  status: string;
-}) {
-  const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
-  const { join } = require('path');
-  
-  const DATA_DIR = join(process.cwd(), '.data');
-  const CLAIMS_FILE = join(DATA_DIR, 'claims.json');
-  
-  if (!existsSync(DATA_DIR)) {
-    mkdirSync(DATA_DIR, { recursive: true });
-  }
-  
-  let claims: Record<string, any> = {};
-  if (existsSync(CLAIMS_FILE)) {
-    try {
-      claims = JSON.parse(readFileSync(CLAIMS_FILE, 'utf-8'));
-    } catch {
-      claims = {};
-    }
-  }
-  
-  claims[claimCode] = data;
-  writeFileSync(CLAIMS_FILE, JSON.stringify(claims, null, 2));
 }
