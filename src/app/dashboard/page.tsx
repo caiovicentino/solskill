@@ -149,7 +149,7 @@ export default function Dashboard() {
         {/* Show Register Flow or Dashboard Content */}
         {showRegister ? (
           <div className="max-w-2xl mx-auto">
-            <RegisterFlow onComplete={() => setShowRegister(false)} />
+            <RegisterFlow />
           </div>
         ) : (
           <>
