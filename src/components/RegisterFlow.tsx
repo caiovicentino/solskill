@@ -43,14 +43,18 @@ export default function RegisterFlow({ onComplete }: RegisterFlowProps) {
       });
       
       const data = await res.json();
+      console.log('API Response:', data);
       
       if (data.success) {
+        console.log('Setting API key:', data.agent.api_key);
         setApiKey(data.agent.api_key);
+        console.log('Setting step to done');
         setStep('done');
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
         onComplete?.(data.agent.api_key, agentName);
       } else {
+        console.log('Error:', data.error);
         setError(data.error || 'Failed to register agent.');
       }
     } catch {
