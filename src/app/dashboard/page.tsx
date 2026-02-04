@@ -4,6 +4,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AnimatedLogo, NavLogo } from '@/components/AnimatedLogo';
+import RegisterFlow from '@/components/RegisterFlow';
 import { 
   AnimatedIcon,
   SwapIcon,
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'holdings' | 'defi' | 'orders'>('overview');
+  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
@@ -119,7 +121,17 @@ export default function Dashboard() {
             <NavLogo />
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-gray-400 text-sm">
+            <button
+              onClick={() => setShowRegister(!showRegister)}
+              className={`px-4 py-2 rounded-lg transition font-medium ${
+                showRegister 
+                  ? 'bg-[#14F195]/20 text-[#14F195] border border-[#14F195]/30' 
+                  : 'bg-gradient-to-r from-[#14F195] to-[#0fd884] text-black hover:opacity-90'
+              }`}
+            >
+              {showRegister ? '← Back to Dashboard' : '+ Create Agent'}
+            </button>
+            <span className="text-gray-400 text-sm hidden sm:inline">
               {user?.wallet?.address?.slice(0, 6)}...{user?.wallet?.address?.slice(-4)}
             </span>
             <button
@@ -131,6 +143,13 @@ export default function Dashboard() {
           </div>
         </nav>
 
+        {/* Show Register Flow or Dashboard Content */}
+        {showRegister ? (
+          <div className="max-w-2xl mx-auto">
+            <RegisterFlow onComplete={() => setShowRegister(false)} />
+          </div>
+        ) : (
+          <>
         {/* Portfolio Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <SummaryCard
@@ -199,6 +218,8 @@ export default function Dashboard() {
             {activeTab === 'holdings' && <HoldingsTab portfolio={portfolio} />}
             {activeTab === 'defi' && <DeFiTab portfolio={portfolio} />}
             {activeTab === 'orders' && <OrdersTab portfolio={portfolio} />}
+          </>
+        )}
           </>
         )}
       </div>
