@@ -144,9 +144,9 @@ export function BitcoinSpin(props: AnimationProps) {
 export function AnimatedGradient({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-[#14F195]/20 via-transparent to-[#9945FF]/20 animate-pulse" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#14F195]/10 via-transparent to-transparent" />
-      {children}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#14F195]/20 via-transparent to-[#9945FF]/20 animate-pulse pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#14F195]/10 via-transparent to-transparent pointer-events-none" />
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }
