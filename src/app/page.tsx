@@ -148,12 +148,12 @@ export default function Home() {
                   <div className="text-gray-500 text-sm">DeFi Protocols</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#14F195]">15+</div>
+                  <div className="text-3xl font-bold text-[#14F195]">35+</div>
                   <div className="text-gray-500 text-sm">API Endpoints</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#14F195]">∞</div>
-                  <div className="text-gray-500 text-sm">Possibilities</div>
+                  <div className="text-3xl font-bold text-[#14F195]">v2.0</div>
+                  <div className="text-gray-500 text-sm">Strategy Engine</div>
                 </div>
               </div>
             </div>
@@ -321,6 +321,45 @@ export default function Home() {
               icon={<BellIcon size={40} />}
               name="Alerts"
               desc="Get notified on price movements"
+              status="live"
+            />
+          </div>
+
+          {/* New AI-Powered Skills */}
+          <div className="mt-8 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#9945FF]/10 border border-[#9945FF]/30 rounded-full text-sm text-[#9945FF]">
+              NEW — AI-Powered Skills
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SkillCard
+              icon={<RocketIcon size={40} />}
+              name="Strategy Engine"
+              desc="AI-recommended DeFi allocations based on risk profile and real APY data"
+              status="live"
+            />
+            <SkillCard
+              icon={<DocumentIcon size={40} />}
+              name="Simulation Mode"
+              desc="Dry-run any operation — see expected output, fees, and risks before executing"
+              status="live"
+            />
+            <SkillCard
+              icon={<TargetIcon size={40} />}
+              name="Risk Scoring"
+              desc="0-100 risk score with smart contract, IL, liquidation, and TVL breakdown"
+              status="live"
+            />
+            <SkillCard
+              icon={<ChartIcon size={40} />}
+              name="Health Monitor"
+              desc="Live health check of Jupiter, Kamino, Raydium + Solana TPS and gas fees"
+              status="live"
+            />
+            <SkillCard
+              icon={<WaterIcon size={40} />}
+              name="Yield Optimizer"
+              desc="Find best yields across all protocols — sorted, filtered, risk-rated"
               status="live"
             />
           </div>
