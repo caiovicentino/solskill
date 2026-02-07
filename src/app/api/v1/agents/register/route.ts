@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID, randomBytes } from 'crypto';
 
-// In-memory store for hackathon (resets on cold start, but that's OK for demo)
-const agentsStore = new Map<string, any>();
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -24,34 +21,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate credentials
+    // Generate credentials (stateless - works on every cold start)
     const apiKey = `solskill_${randomBytes(24).toString('hex')}`;
     const agentId = randomUUID();
 
-    // Create agent record
-    const agent = {
-      id: agentId,
-      name: name.trim(),
-      description: description?.trim(),
-      apiKey,
-      verified: true, // Auto-verified for hackathon
-      createdAt: new Date().toISOString(),
-      requestCount: 0,
-    };
-
-    // Store in memory
-    agentsStore.set(apiKey, agent);
-
-    console.log(`✅ Agent registered: ${name} - ${agentId}`);
+    console.log(`Agent registered: ${name} - ${agentId}`);
 
     return NextResponse.json({
       success: true,
       agent: {
         id: agentId,
         name: name.trim(),
+        description: description?.trim() || null,
         api_key: apiKey,
+        verified: true,
+        createdAt: new Date().toISOString(),
       },
-      important: '⚠️ SAVE YOUR API KEY! It will not be shown again.',
+      usage: {
+        rateLimit: '100 requests/minute',
+        endpoints: 'All public endpoints + protected endpoints with API key',
+      },
+      important: 'SAVE YOUR API KEY! It will not be shown again. Include it as x-api-key header in requests.',
     });
   } catch (error) {
     console.error('Agent registration error:', error);

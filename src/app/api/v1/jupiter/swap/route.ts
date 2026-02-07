@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidSolanaAddress, fetchWithTimeout } from '@/lib/solana';
 import { db } from '@/lib/db';
 
-const JUPITER_API = 'https://quote-api.jup.ag/v6';
+// Jupiter Ultra API (consistent with quote endpoint)
+const JUPITER_API = 'https://api.jup.ag/ultra/v1';
+const JUPITER_API_KEY = process.env.JUPITER_API_KEY || 'a6ae79cc-4699-4de4-8b93-826698f419d4';
 
 export async function POST(req: NextRequest) {
   try {
     // Validate API key
     const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!apiKey || !db.validateApiKey(apiKey)) {
       return NextResponse.json(
         { success: false, error: 'Valid API key required for swap operations' },
@@ -17,13 +19,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { 
+    const {
       inputMint,
       outputMint,
       amount,
-      userPublicKey, 
+      userPublicKey,
       slippageBps = 50,
-      wrapAndUnwrapSol = true,
     } = body;
 
     // Validate user public key
@@ -49,62 +50,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get fresh quote from Jupiter (don't trust client-provided quotes)
-    const quoteUrl = `${JUPITER_API}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`;
-    
-    const quoteRes = await fetchWithTimeout(quoteUrl, {}, 15000);
-    
-    if (!quoteRes.ok) {
-      const error = await quoteRes.text();
-      return NextResponse.json(
-        { success: false, error: `Failed to get quote: ${error}` },
-        { status: 400 }
-      );
-    }
+    // Get order from Jupiter Ultra API (quote + swap in one call)
+    const orderUrl = `${JUPITER_API}/order`;
 
-    const quoteResponse = await quoteRes.json();
-
-    // Build swap transaction
-    const swapRes = await fetchWithTimeout(`${JUPITER_API}/swap`, {
+    const orderRes = await fetchWithTimeout(orderUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-api-key': JUPITER_API_KEY,
+      },
       body: JSON.stringify({
-        quoteResponse,
-        userPublicKey,
-        wrapAndUnwrapSol,
-        dynamicComputeUnitLimit: true,
-        prioritizationFeeLamports: 'auto',
+        inputMint,
+        outputMint,
+        amount: amount.toString(),
+        taker: userPublicKey,
+        slippageBps: parseInt(slippageBps.toString()),
       }),
     }, 15000);
 
-    if (!swapRes.ok) {
-      const error = await swapRes.text();
+    if (!orderRes.ok) {
+      const error = await orderRes.text();
+      console.error(`Jupiter Ultra swap error: ${orderRes.status} - ${error}`);
       return NextResponse.json(
-        { success: false, error: `Jupiter swap error: ${error}` },
-        { status: swapRes.status }
+        { success: false, error: `Jupiter swap error: ${orderRes.status} - ${error}` },
+        { status: orderRes.status }
       );
     }
 
-    const swapData = await swapRes.json();
+    const orderData = await orderRes.json();
 
     // Increment usage count
     db.incrementRequestCount(apiKey);
 
     return NextResponse.json({
       success: true,
-      swapTransaction: swapData.swapTransaction,
-      lastValidBlockHeight: swapData.lastValidBlockHeight,
-      prioritizationFeeLamports: swapData.prioritizationFeeLamports,
-      computeUnitLimit: swapData.computeUnitLimit,
+      // Ultra API returns transaction directly
+      transaction: orderData.transaction,
+      requestId: orderData.requestId,
       quote: {
-        inputMint: quoteResponse.inputMint,
-        outputMint: quoteResponse.outputMint,
-        inAmount: quoteResponse.inAmount,
-        outAmount: quoteResponse.outAmount,
-        priceImpactPct: quoteResponse.priceImpactPct,
+        inputMint: orderData.inputMint || inputMint,
+        outputMint: orderData.outputMint || outputMint,
+        inAmount: orderData.inAmount,
+        outAmount: orderData.outAmount,
+        priceImpactPct: orderData.priceImpactPct,
       },
       instructions: {
-        step1: 'Deserialize swapTransaction (base64 encoded versioned transaction)',
+        step1: 'Deserialize the transaction (base64 encoded)',
         step2: 'Sign with user wallet',
         step3: 'Send to Solana RPC',
         step4: 'Confirm transaction',
@@ -112,14 +104,14 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Jupiter swap error:', error);
-    
+
     if (error.name === 'AbortError') {
       return NextResponse.json(
         { success: false, error: 'Jupiter API timeout. Please try again.' },
         { status: 504 }
       );
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to build swap transaction' },
       { status: 500 }
