@@ -153,8 +153,8 @@ export async function GET(req: NextRequest) {
     },
     protocols,
     solskill: {
-      version: '1.0.0',
-      endpoints: 35,
+      version: '3.0.0',
+      endpoints: 45,
       uptime: '99.9%',
     },
   });

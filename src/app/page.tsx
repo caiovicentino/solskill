@@ -148,7 +148,7 @@ export default function Home() {
                   <div className="text-gray-500 text-sm">DeFi Protocols</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#14F195]">35+</div>
+                  <div className="text-3xl font-bold text-[#14F195]">45+</div>
                   <div className="text-gray-500 text-sm">API Endpoints</div>
                 </div>
                 <div>
@@ -360,6 +360,66 @@ export default function Home() {
               icon={<WaterIcon size={40} />}
               name="Yield Optimizer"
               desc="Find best yields across all protocols — sorted, filtered, risk-rated"
+              status="live"
+            />
+            <SkillCard
+              icon={<ChartIcon size={40} />}
+              name="Market Prices"
+              desc="Real-time token prices via Jupiter for SOL, USDC, JUP, and more"
+              status="live"
+            />
+            <SkillCard
+              icon={<RocketIcon size={40} />}
+              name="Backtest Engine"
+              desc="Simulate historical strategy performance with real APY data"
+              status="live"
+            />
+            <SkillCard
+              icon={<SwapIcon size={40} />}
+              name="Trending Tokens"
+              desc="Top trending Solana tokens from DexScreener with live prices"
+              status="live"
+            />
+            <SkillCard
+              icon={<WalletIcon size={40} />}
+              name="Swap & Deposit"
+              desc="Composite action: swap tokens then deposit into yield vaults"
+              status="live"
+            />
+            <SkillCard
+              icon={<BankIcon size={40} />}
+              name="DeFi TVL Tracker"
+              desc="Solana ecosystem TVL from DefiLlama — protocols, categories, trends"
+              status="live"
+            />
+            <SkillCard
+              icon={<TargetIcon size={40} />}
+              name="Gas Estimator"
+              desc="Priority fee tiers, TPS, and recommended gas for fast transactions"
+              status="live"
+            />
+            <SkillCard
+              icon={<PortfolioIcon size={40} />}
+              name="Rebalancer"
+              desc="Generate multi-step execution plans to hit target allocations"
+              status="live"
+            />
+            <SkillCard
+              icon={<ChartIcon size={40} />}
+              name="P&L Tracker"
+              desc="Portfolio profit & loss with per-token breakdown and cost basis"
+              status="live"
+            />
+            <SkillCard
+              icon={<DocumentIcon size={40} />}
+              name="Protocol Compare"
+              desc="Compare protocols by APY, TVL, risk, and fees with recommendations"
+              status="live"
+            />
+            <SkillCard
+              icon={<BellIcon size={40} />}
+              name="Smart Alerts"
+              desc="Multi-type alerts for price, yield, TVL, gas with webhook support"
               status="live"
             />
           </div>
